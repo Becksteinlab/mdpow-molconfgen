@@ -1,6 +1,8 @@
 *~
 
+# python crud
 .ipynb_checkpoints
+__pycache__
 
 # data files
 COW/
