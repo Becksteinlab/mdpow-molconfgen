@@ -7,77 +7,8 @@ import itertools
 import numpy as np
 from tqdm.auto import tqdm
 
-import MDAnalysis as mda
-
 import rdkit
 from rdkit.Chem.rdMolTransforms import SetDihedralDeg
-
-
-def load_mol(u, add_labels=False):
-    """Create RDKIT mol from a Universe.
-
-    If elements are missing from the Universe, they are guessed and
-    added.
-
-    Arguments
-    ---------
-    u : Universe
-        MDAnalysis universe containing topology and
-        coordinates
-    add_labels : bool, optiona;
-        add MDAnalysis atom index labels to the `mol`
-
-    Returns
-    -------
-    mol : rdkit.Chem.rdchem.Mol
-        RDKit molecule object
-
-    """
-
-    try:
-        mol = u.atoms.convert_to("RDKIT")
-    except AttributeError:
-        from MDAnalysis.topology.guessers import guess_types
-        u.add_TopologyAttr('elements', guess_types(u.atoms.names))
-        mol = u.atoms.convert_to("RDKIT")
-
-    # TODO: we could check if coordinates are present and if not,
-    # generate coordinates with RDKIT.
-
-    if add_labels:
-        for atom in mol.GetAtoms():
-            atom.SetProp("atomNote", str(atom.GetIdx()))
-
-    return mol
-
-
-def load_mdpow_mol(topdir, add_labels=False):
-    """Load Universe and RDKIT mol from MDPOW directory.
-
-    This function assumes that there is one ITP file and one PDB file
-    in the directory. These are used as the topology and coordinate
-    files.
-
-    Arguments
-    ---------
-    topdir : pathlib.Path
-        top directory containing ITP and PDB file
-    add_labels : bool, optiona;
-        add MDAnalysis atom index labels to the `mol`
-
-    Returns
-    -------
-    universe : Universe
-        MDAnalysis Universe data structure
-    mol : rdkit.Chem.rdchem.Mol
-        RDKit molecule object
-
-    """
-
-    topol = list(topdir.glob("*.itp"))[0]
-    coords = list(topdir.glob("*.pdb"))[0]
-    u = mda.Universe(topol, coords)
-    return u, load_mol(u, add_labels=add_labels)
 
 
 def anglespace(start, num, total=360.):

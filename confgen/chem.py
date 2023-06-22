@@ -3,6 +3,80 @@
 
 import numpy as np
 import rdkit.Chem
+import MDAnalysis as mda
+
+def load_mol(u, add_labels=False):
+    """Create RDKIT mol from a Universe.
+
+    If elements are missing from the Universe, they are guessed and
+    added.
+
+    .. Note:: The *whole* Universe is transformed into a molecule.  If
+              subselections are required, this code needs to be
+              changed.
+
+    Arguments
+    ---------
+    u : Universe
+        MDAnalysis universe containing topology and
+        coordinates
+    add_labels : bool, optiona;
+        add MDAnalysis atom index labels to the `mol`
+
+    Returns
+    -------
+    mol : rdkit.Chem.rdchem.Mol
+        RDKit molecule object
+
+    """
+
+    try:
+        mol = u.atoms.convert_to("RDKIT")
+    except AttributeError:
+        from MDAnalysis.topology.guessers import guess_types
+        u.add_TopologyAttr('elements', guess_types(u.atoms.names))
+        mol = u.atoms.convert_to("RDKIT")
+
+    # TODO: we could check if coordinates are present and if not,
+    # generate coordinates with RDKIT.
+
+    if add_labels:
+        for atom in mol.GetAtoms():
+            atom.SetProp("atomNote", str(atom.GetIdx()))
+
+    return mol
+
+
+def load_mdpow_mol(topdir, add_labels=False):
+    """Load Universe and RDKIT mol from MDPOW directory.
+
+    This function assumes that there is one ITP file and one PDB file
+    in the directory. These are used as the topology and coordinate
+    files.
+
+    Thus, the universe only contains the solute molecule (from the ITP
+    file).
+
+    Arguments
+    ---------
+    topdir : pathlib.Path
+        top directory containing ITP and PDB file
+    add_labels : bool, optiona;
+        add MDAnalysis atom index labels to the `mol`
+
+    Returns
+    -------
+    universe : Universe
+        MDAnalysis Universe data structure
+    mol : rdkit.Chem.rdchem.Mol
+        RDKit molecule object
+
+    """
+
+    topol = list(topdir.glob("*.itp"))[0]
+    coords = list(topdir.glob("*.pdb"))[0]
+    u = mda.Universe(topol, coords)
+    return u, load_mol(u, add_labels=add_labels)
 
 
 def unique_torsions(dihedral_atom_indices):
@@ -31,9 +105,8 @@ def unique_torsions(dihedral_atom_indices):
     return dihedral_atom_indices[dihedral_indices]
 
 
-def find_dihedral_indices(
-                   mol, unique=True,
-                   SMARTS='[!#1]~[!$(*#*)&!D1]-!@[!$(*#*)&!D1]~[!#1]'):
+def find_dihedral_indices(mol, unique=True,
+                          SMARTS='[!#1]~[!$(*#*)&!D1]-!@[!$(*#*)&!D1]~[!#1]'):
     """Extract indices of all dihedrals in a molecule.
 
     Arguments
@@ -56,3 +129,30 @@ def find_dihedral_indices(
     if unique:
         atom_indices = unique_torsions(atom_indices)
     return atom_indices
+
+
+def find_dihedrals(mol, universe, unique=True):
+    """Find dihedrals in mol and return MDAnalysis dihedral objects.
+
+    Arguments
+    ---------
+    mol : Molecule
+       rdkit molecule of the compound
+    universe : MDAnalysis.Universe
+       The Universe from which `mol` was obtained.
+       Atom indices must match!
+    unique : bool
+       Only return unique torsions (no duplicated
+       central bonds).
+
+    Returns
+    -------
+    dihedrals : list
+       list of :class:`MDAnalysis.core.topologyobjects.Dihedral`
+       instances, selected via the dihedral indices from `universe`
+
+
+    .. SeeAlso:: :func:`find_dihedral_indices`
+    """
+    dh_ix = find_dihedral_indices(mol, unique=unique)
+    return [universe.atoms[indices].dihedral for indices in dh_ix]
