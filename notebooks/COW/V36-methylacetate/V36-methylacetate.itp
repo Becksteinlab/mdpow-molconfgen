@@ -1,0 +1,97 @@
+; input pdb SMILES : C(OC)(=O)C
+; Script arguments : V36-methylacetate.mol2
+
+[ moleculetype ]
+; Name      nrexcl
+V36              3
+
+[ atoms ]
+; atomnr  atomtype   resnr  resname  atomname  chargegrp   charge       mass
+       1  opls_465      1      V36        C1          1     0.510   12.01100 ; C_2 # AA C:   esters - for R on C=O, use #280-#282
+       2  opls_467      1      V36        O2          1    -0.330   15.99940 ; OS # AA -OR: ester 
+       3  opls_466      1      V36        O4          1    -0.430   15.99940 ; O_2 # AA =O:  esters   
+       4  opls_468      1      V36        C3          2     0.160   12.01100 ; CT # methoxy C in esters - see also #490-#492
+       5  opls_469      1      V36        H6          2     0.030    1.00800 ; HC # methoxy Hs in esters
+       6  opls_469      1      V36        H7          2     0.030    1.00800 ; HC # methoxy Hs in esters
+       7  opls_469      1      V36        H8          2     0.030    1.00800 ; HC # methoxy Hs in esters
+       8  opls_282      1      V36        H9          8     0.060    1.00800 ; HC # AA H on C-alpha in ketone & aldehyde
+       9  opls_282      1      V36       H10          9     0.060    1.00800 ; HC # AA H on C-alpha in ketone & aldehyde
+      10  opls_282      1      V36       H11         10     0.060    1.00800 ; HC # AA H on C-alpha in ketone & aldehyde
+      11  opls_135      1      V36        C5         23    -0.180   12.01100 ; CT # alkane CH3 
+; Total charge : -0.000 ### Number of unassigned atoms : 0/11
+
+[ bonds ]
+; ai   aj  funct  r  k
+   1    2      1  ; C_2-OS # J.Comp.Chem.1990,11,1181 SKF8
+   1    3      1  ; C_2-O_2 #
+   1   11      1  ; C_2-CT # 
+   2    4      1  ; OS-CT # (CT-OS)  
+   4    5      1  ; CT-HC # CHARMM 22 parameter file
+   4    6      1  ; CT-HC # CHARMM 22 parameter file
+   4    7      1  ; CT-HC # CHARMM 22 parameter file
+  11    8      1  ; CT-HC # CHARMM 22 parameter file
+  11    9      1  ; CT-HC # CHARMM 22 parameter file
+  11   10      1  ; CT-HC # CHARMM 22 parameter file
+
+[ angles ]
+; ai   aj   ak  funct  theta   cth
+   2    1    3      1  ; OS-C_2-O_2 # (O_2-C_2-OS)  J.Comp.Chem.1990,11,1181 for SKF8
+   2    1   11      1  ; OS-C_2-CT # -idem-
+   3    1   11      1  ; O_2-C_2-CT # (CT-C_2-O_2)  
+   1    2    4      1  ; C_2-OS-CT # -idem-
+   2    4    5      1  ; OS-CT-HC # (HC-CT-OS)  SUG
+   2    4    6      1  ; OS-CT-HC # (HC-CT-OS)  SUG
+   2    4    7      1  ; OS-CT-HC # (HC-CT-OS)  SUG
+   5    4    6      1  ; HC-CT-HC # CHARMM 22 parameter file
+   5    4    7      1  ; HC-CT-HC # CHARMM 22 parameter file
+   6    4    7      1  ; HC-CT-HC # CHARMM 22 parameter file
+   1   11    8      1  ; C_2-CT-HC # 
+   1   11    9      1  ; C_2-CT-HC # 
+   1   11   10      1  ; C_2-CT-HC # 
+   8   11    9      1  ; HC-CT-HC # CHARMM 22 parameter file
+   8   11   10      1  ; HC-CT-HC # CHARMM 22 parameter file
+   9   11   10      1  ; HC-CT-HC # CHARMM 22 parameter file
+
+[ dihedrals ]
+; ai   aj   ak   al  funct   C0  ...  C5
+   3    1    2    4      3     ; O_2-C_2-OS-CT # (CT-OS-C_2-O_2)  esters 
+  11    1    2    4      3     ; CT-C_2-OS-CT # esters 
+   2    1   11    8      3     ; OS-C_2-CT-HC # (HC-CT-C_2-OS)  esters 
+   2    1   11    9      3     ; OS-C_2-CT-HC # (HC-CT-C_2-OS)  esters 
+   2    1   11   10      3     ; OS-C_2-CT-HC # (HC-CT-C_2-OS)  esters 
+   3    1   11    8      3     ; O_2-C_2-CT-HC # (HC-CT-C_2-O_2)  aldehyde, ketone, ester
+   3    1   11    9      3     ; O_2-C_2-CT-HC # (HC-CT-C_2-O_2)  aldehyde, ketone, ester
+   3    1   11   10      3     ; O_2-C_2-CT-HC # (HC-CT-C_2-O_2)  aldehyde, ketone, ester
+   1    2    4    5      3     ; C_2-OS-CT-HC # esters
+   1    2    4    6      3     ; C_2-OS-CT-HC # esters
+   1    2    4    7      3     ; C_2-OS-CT-HC # esters
+
+[ dihedrals ]
+; impropers
+; ai   aj   ak   al  funct  improper
+   2   11    1    3      1  improper_O_C_X_Y       ; OS-CT-C_2-O_2
+
+[ pairs ]
+; ai   aj  funct
+   1    5      1
+   1    6      1
+   1    7      1
+   2    8      1
+   2    9      1
+   2   10      1
+   4    3      1
+   4   11      1
+   3    8      1
+   3    9      1
+   3   10      1
+
+#ifdef POSRES
+[ position_restraints ]
+; atom  type      fx      fy      fz
+     1     1    1000    1000    1000
+     2     1    1000    1000    1000
+     4     1    1000    1000    1000
+     3     1    1000    1000    1000
+    11     1    1000    1000    1000
+#endif
+
