@@ -51,6 +51,9 @@ setup(
     # do not use for Conda deployment
     install_requires=[
         "mdanalysis>=2.0.0",
+        "numpy",
+        "rdkit",
+        "tqdm",
     ],
     # Additional entries you may want simply uncomment the lines you want and fill in the data
     # url='mdpow-molconfgen.readthedocs.io/en/latest/',  # Website
