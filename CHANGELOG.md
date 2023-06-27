@@ -16,13 +16,16 @@ The rules for this file:
   * accompany each entry with github issue/PR number (Issue #xyz)
 -->
 
-## [Unreleased]
+## 0.0.1
+
+2023-06-27
 
 ### Authors
 <!-- GitHub usernames of contributors to this release -->
+- orbeckst
 
 ### Added
-<!-- New added features -->
+- initial release with base functionality (but no testing)
 
 ### Fixed
 <!-- Bug fixes -->
