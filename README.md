@@ -42,27 +42,27 @@ mdpow-molconfgen is bound by a [Code of Conduct](https://github.com/becksteinlab
 
 To build mdpow-molconfgen from source,
 we highly recommend using virtual environments.
-If possible, we strongly recommend that you use
-[Anaconda](https://docs.conda.io/en/latest/) as your package manager.
-Below we provide instructions both for `conda` and
+If possible, we strongly recommend that you use 
+[mamba](https://mamba.readthedocs.io/en/latest/index.html) as your package manager.
+Below we provide instructions both for `mamba` and
 for `pip`.
 
-#### With conda
+#### With mamba
 
-Ensure that you have [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) installed.
+Ensure that you have [mamba](https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html) installed.
 
 Create a virtual environment and activate it:
 
 ```
-conda create --name mdpow-molconfgen
-conda activate mdpow-molconfgen
+mamba create --name mdpow-molconfgen
+mamba activate mdpow-molconfgen
 ```
 
 Install the development and documentation dependencies:
 
 ```
-conda env update --name mdpow-molconfgen --file devtools/conda-envs/test_env.yaml
-conda env update --name mdpow-molconfgen --file docs/requirements.yaml
+mamba env update --name mdpow-molconfgen --file devtools/conda-envs/test_env.yaml
+mamba env update --name mdpow-molconfgen --file docs/requirements.yaml
 ```
 
 Build this package from source:
@@ -74,13 +74,13 @@ pip install -e .
 If you want to update your dependencies (which can be risky!), run:
 
 ```
-conda update --all
+mamba update --all
 ```
 
 And when you are finished, you can exit the virtual environment with:
 
 ```
-conda deactivate
+mamba deactivate
 ```
 
 #### With pip
