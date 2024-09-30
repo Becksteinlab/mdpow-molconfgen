@@ -1,7 +1,6 @@
 name: mdpow-molconfgen-test
 channels:
   - conda-forge
-  - defaults
 dependencies:
   # Base depends
   - python
