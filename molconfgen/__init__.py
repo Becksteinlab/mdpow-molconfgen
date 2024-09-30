@@ -17,3 +17,6 @@ del get_versions, versions
 from . import chem
 from . import sampler
 
+
+from . import _version
+__version__ = _version.get_versions()['version']
