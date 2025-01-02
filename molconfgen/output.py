@@ -3,6 +3,7 @@
 # sampler.generate_conformers
 
 import MDAnalysis as mda
+import MDAnalysis.transformations
 import numpy as np
 
 
@@ -30,7 +31,7 @@ def write_pbc_trajectory(u, filename, box = None):
 
 # first case is for if they want no box
 # just return the boxless trajectory I guess
-    if box = None:
+    if box == None:
         u.atoms.write(filename, frames = "all")
         return filename    
 
@@ -38,7 +39,7 @@ def write_pbc_trajectory(u, filename, box = None):
 # don't define it themselves
 # here we define a "good" box as 3 times the 
 # largest bsphere radius
-    if box = 'auto':
+    if box == 'auto':
         # call largest_r to find the largest r
         r = largest_r(u)
         dim = np.array([3*r,3*r,3*r,90,90,90])
@@ -51,7 +52,7 @@ def write_pbc_trajectory(u, filename, box = None):
 # third case is for if they input a float for the box dimensions
 # if they input a box that is too small, return an error message?
 # smallest minimum box is more than 2 times the largest bsphere radius
-    if isinstance(box, float):
+    if isinstance(box,float) or isinstance(box,int):
         r = largest_r(u)
         if box <= 2*r:
             raise ValueError('your box should probably be a bit bigger')
