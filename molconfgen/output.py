@@ -1,3 +1,5 @@
+
+
 # Richard Richardson wrote this ;)
 # Function to add a box to the output of
 # sampler.generate_conformers
@@ -5,74 +7,107 @@
 import MDAnalysis as mda
 import MDAnalysis.transformations
 import numpy as np
+from tqdm import tqdm
 
+def largest_r(ag):
+    """Find the largest radius to enclose 'ag'.
+    
+    The function iterates over the whole trajectory associated with 'ag' 
+    and returns the maximum radius.
 
-# Function for finding the largest radius in
-# the trajectory
-# this will come in handy later
-def largest_r(u):
-    r = 0
-    for ts in u.trajectory:
-        ag = u.atoms
-        rnew = ag.bsphere()[0]
-        if rnew > r:
-            r = rnew
+    Arguments
+    ---------
+    ag : AtomGroup
+        'ag' contains the molecule of interest
+
+    Returns
+    -------
+    r : float
+    """
+    u = ag.universe
+    r = np.max([ag.bsphere()[0] for ts in u.trajectory])
     return r
 
-def write_pbc_trajectory(u, filename, box = None):
-    ''' u is MDAnalysis universe with a trajectory
-     filename is the name of the trajectory output file
-     box argument describes how to set the box dimensions
+def write_pbc_trajectory(u, l = 10, filename, box = None):
+    '''Define the box for a trajectory and write to a file.
 
-     I am not quite sure how to read a lone trajectory file
-     and sampler.generate_conformers returns a universe with
-     a trajectroy so for now I'm going to assume a universe 
-     with a trajectory '''
+    The function defines a box for the trajectory associated with 'u' and
+    writes it to a file. The default option is to write the trajectory to
+    a file without a box.
 
-# first case is for if they want no box
-# just return the boxless trajectory I guess
+    This is intended to be used with the output of molconfgen's 
+    sampler.generate_conformers, but it is general enough to use with any 
+    universe that contains a molecule and trajectory
+
+    Arguments
+    ---------
+    u : MDAnalysis universe
+        contains molecule of interest and a trajectory 
+    l : int or float
+        Default is 10. This is the number that multplies the largest_r in
+        the box = 'auto' option.
+    filename : str
+        name of the trajectory file to be written
+    box : int or float, array_like, 'auto',  None
+        There are four different options here to allow for customization 
+        of the box. 
+        None is the default and leaves the trajectory unmodified. 
+        'auto' will call the largest_r function and multiply the result 
+        by l. The box is then a cube with side lengths equal to l*r.
+        int or float will assume the box is a cube with side lengths equal
+        to the input argument.
+        array_like must be a 1x6 array with the first three entries 
+        representing the sides of the box and the last three entries 
+        representing the angles between them.
+    
+    Returns
+    -------
+    filename : str 
+        a file containing the transformed (or not transformed) trajectory
+
+    Notes
+    -----
+    Hypothetically the smallest box that would completely enclose the 
+    molecule should be 2*r where r is the largest radius to enclose the 
+    molecule; this is why I check if box <= 2*r for box = int or float.
+    In my experience I have found that Gromacs prefers the box to be 
+    quite large or else it will complain about box dimensions when 
+    using mdrun -rerun. For this reason, I made it so that the 'auto' 
+    argument draws a very large box.'''
+
     if box == None:
         u.atoms.write(filename, frames = "all")
         return filename    
 
-# second case is for if they want a box but 
-# don't define it themselves
-# here we define a "good" box as 3 times the 
-# largest bsphere radius
     if box == 'auto':
         # call largest_r to find the largest r
         r = largest_r(u)
-        dim = np.array([3*r,3*r,3*r,90,90,90])
+        dim = np.array([l*r,l*r,l*r,90,90,90])
         transform = mda.transformations.boxdimensions.set_dimensions(dim)
         u.trajectory.add_transformations(transform)
         u.atoms.write(filename, frames = "all")
         return filename
 
-
-# third case is for if they input a float for the box dimensions
-# if they input a box that is too small, return an error message?
-# smallest minimum box is more than 2 times the largest bsphere radius
-    if isinstance(box,float) or isinstance(box,int):
+    if isinstance(box,(float, int)):
         r = largest_r(u)
         if box <= 2*r:
-            raise ValueError('your box should probably be a bit bigger')
-        else:
-            dim = np.array([box,box,box,90,90,90])
-            transform = mda.transformations.boxdimensions.set_dimensions(dim)
-            u.trajectory.add_transformations(transform)
-            u.atoms.write(filename, frames = "all")
-            return filename
+            raise ValueError('Sides of box must be greater than 2*r where r is the largest radius enclosing the molecule')
+        dim = np.array([box,box,box,90,90,90])
+        transform = mda.transformations.boxdimensions.set_dimensions(dim)
+        u.trajectory.add_transformations(transform)
+        u.atoms.write(filename, frames = "all")
+        return filename
 
-
-# fourth case is for if they input a regular box discription:
-# [A, B, C. alpha, beta, gamma]
-# I'm not entirely sure how to check for some sort of irregular box,
-# or how to even check if the input is correct for this one
-# so we'll just leave it for now and treat this as a rough draft.
-# I'll come back and work on it after christmas, and in the 
-# meantime there's other parts of this project I can work on
-
-
+    if len(box) == 6:
+        dim = np.asarry(box, dtype=np.float32)
+        r = largest_r(u)
+        for x in dim[0:2]:
+            if x <= 2*r:
+                raise ValueError('Sides of box must be greater than 2*r where r is the largest radius enclosing the molecule')
+        transform = mda.transformations.boxdimensions.set_dimensions(dim)
+        u.trajectory.add_transformations(transform)
+        u.atoms.write(filename, frames = "all")
+        return filename
         
 
 
