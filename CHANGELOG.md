@@ -15,6 +15,52 @@ The rules for this file:
     * YYYY-MM-DD date format (following ISO 8601)
   * accompany each entry with github issue/PR number (Issue #xyz)
 -->
+## 0.2.0
+
+????-??-??
+
+### Authors
+<!-- GitHub usernames of contributors to this release -->
+
+### Added
+<!-- new additions -->
+
+### Fixed
+<!-- Bug fixes -->
+
+### Changed
+<!-- Changes in existing functionality -->
+
+### Deprecated
+<!-- Soon-to-be removed features -->
+
+### Removed
+<!-- Removed features -->
+
+
+## 0.1.0
+
+2024-09-30
+
+### Authors
+<!-- GitHub usernames of contributors to this release -->
+- orbeckst
+
+### Fixed
+- forgot to ship versioneer.py (issue #1)
+
+
+## 0.1.0
+
+2024-09-30
+
+### Authors
+<!-- GitHub usernames of contributors to this release -->
+- orbeckst
+
+### Fixed
+- Minor fixes: installs again.
+
 
 ## 0.0.1
 
