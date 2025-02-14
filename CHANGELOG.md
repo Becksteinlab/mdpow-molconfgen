@@ -20,10 +20,10 @@ The rules for this file:
 ????-??-??
 
 ### Authors
-<!-- GitHub usernames of contributors to this release -->
+- rich-squared
 
 ### Added
-<!-- new additions -->
+- Added `output.write_pbc_trajectory()` to write trajectory with fixed box size.(issue #2)
 
 ### Fixed
 <!-- Bug fixes -->
