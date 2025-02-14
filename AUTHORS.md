@@ -21,3 +21,7 @@ The rules for this file:
 
 **2023**
 - Oliver Beckstein <@orbeckst>
+
+**2025**
+- Richard Richardson <@rich-squared>
+
