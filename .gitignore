@@ -111,4 +111,5 @@ poetry.lock
 # generated data files when running notebooks
 *.trr
 
-
+# emacs backup files
+*~
