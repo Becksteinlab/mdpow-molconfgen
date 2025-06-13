@@ -1,0 +1,53 @@
+[build-system]
+requires = [
+  "setuptools >= 40.9.0",
+  "wheel",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mdpow-molconfgen"
+description = "Generation of conformers of small molecules."
+license = {file = "LICENSE" }
+authors = [
+    {name = "Oliver Beckstein", email = "orbeckst@gmail.com"},
+]
+maintainers = [
+    {name = "Oliver Beckstein", email = "orbeckst@gmail.com"},
+]
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "MDAnalysis>=2.0.0",
+]
+keywords = [
+    "molecular simulations",
+]
+dynamic = [
+    "version",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=6.0",
+    "pytest-xdist>=2.5",
+    "pytest-cov>=3.0",
+]
+doc = [
+    "sphinx",
+    "sphinx_rtd_theme",
+]
+
+# [project.urls]
+# source = "https://github.com/becksteinlab/mdpow-molconfgen"
+# documentation = "https://mdpow-molconfgen.readthedocs.io"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = [
+    "mdpow-molconfgen/tests",
+]
+
+[tool.black]
+line-length = 80
+extend-exclude = "versioneer.py"

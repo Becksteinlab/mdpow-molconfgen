@@ -75,7 +75,7 @@ def generate_conformers(mol, dihedrals, num=12):
     u = dihedrals[0].atoms.universe.copy()
 
     phi_ranges = [dihedralangles(d, num) for d in dihedrals]
-    n_frames = np.product([len(x) for x in phi_ranges])
+    n_frames = np.prod([len(x) for x in phi_ranges])
 
     trajectory = np.empty((n_frames, u.atoms.n_atoms, 3), dtype=np.float32)
 

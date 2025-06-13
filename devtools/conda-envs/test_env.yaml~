@@ -1,0 +1,27 @@
+name: mdpow-molconfgen-test
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  # Base depends
+  - python
+  - pip
+
+  # MDAnalysis
+  - MDAnalysis
+
+  # other package dependencies
+  - rdkit
+  - numpy
+  - tqdm
+
+  # Testing
+  - pytest
+  - pytest-cov
+  - pytest-xdist
+  - codecov
+
+  # Pip-only installs
+  #- pip:
+  #  - codecov
+
