@@ -3,7 +3,6 @@
 # sampler.generate_conformers
 
 import MDAnalysis as mda
-import MDAnalysis.transformations
 import numpy as np
 from tqdm import tqdm
 
@@ -16,99 +15,88 @@ def largest_r(ag):
 
     Arguments
     ---------
-    ag : AtomGroup
-        'ag' contains the molecule of interest
+    ag : MDAnalysis.core.groups.AtomGroup or MDAnalysis.Universe
+        Contains the molecule of interest
 
     Returns
     -------
-    r : float
+    float
+        The maximum radius needed to enclose the molecule across all frames
     """
     u = ag.universe
     r = np.max([ag.bsphere()[0] for ts in u.trajectory])
     return r
 
 
-def write_pbc_trajectory(u, filename, l=10, box=None):
+def write_pbc_trajectory(ag, filename, scale=10.0, box=None):
     """Define the box for a trajectory and write to a file.
 
-    The function defines a box for the trajectory associated with 'u' and
+    The function defines a box for the trajectory associated with 'ag' and
     writes it to a file. The default option is to write the trajectory to
     a file without a box.
 
     This is intended to be used with the output of molconfgen's
     sampler.generate_conformers, but it is general enough to use with any
-    universe that contains a molecule and trajectory
+    universe that contains a molecule and trajectory.
 
     Arguments
     ---------
-    u : MDAnalysis universe
-        contains molecule of interest and a trajectory
-    l : int or float
-        Default is 10. This is the number that multplies the largest_r in
-        the box = 'auto' option.
+    ag : MDAnalysis.core.groups.AtomGroup or MDAnalysis.Universe
+        Contains the molecule of interest and a trajectory
     filename : str
-        name of the trajectory file to be written
-    box : int or float, array_like, 'auto',  None
+        Name of the trajectory file to be written
+    scale : float, optional
+        Default is 10.0. This is the number that multiplies the largest_r in
+        the box = 'auto' option.
+    box : float, array_like, 'auto', or None, optional
         There are four different options here to allow for customization
-        of the box.
-        None is the default and leaves the trajectory unmodified.
-        'auto' will call the largest_r function and multiply the result
-        by l. The box is then a cube with side lengths equal to l*r.
-        int or float will assume the box is a cube with side lengths equal
-        to the input argument.
-        array_like must be a 1x6 array with the first three entries
-        representing the sides of the box and the last three entries
-        representing the angles between them.
+        of the box:
+        - None: leaves the trajectory unmodified
+        - 'auto': calls largest_r and multiplies the result by scale
+        - float: assumes the box is a cube with side lengths equal to the input
+        - array_like: must be a 1x6 array with the first three entries
+          representing the sides of the box and the last three entries
+          representing the angles between them
 
     Returns
     -------
-    filename : str
-        a file containing the transformed (or not transformed) trajectory
+    MDAnalysis.core.groups.AtomGroup
+        The AtomGroup with the transformed (or not transformed) trajectory
 
     Notes
     -----
-    Hypothetically the smallest box that would completely enclose the
+    For orthorhombic boxes, the smallest box that would completely enclose the
     molecule should be 2*r where r is the largest radius to enclose the
-    molecule; this is why I check if box <= 2*r for box = int or float.
-    In my experience I have found that Gromacs prefers the box to be
-    quite large or else it will complain about box dimensions when
-    using mdrun -rerun. For this reason, I made it so that the 'auto'
-    argument draws a very large box."""
+    molecule. For triclinic boxes this is just a rule of thumb.
+    """
+    u = ag.universe.copy()
+    r = largest_r(ag)
+    ag_new = u.atoms[ag.ix]
 
-    if box == None:
-        u.atoms.write(filename, frames="all")
-        return filename
+    if box is None:
+        ag_new.atoms.write(filename, frames="all")
+        return ag_new
 
     if box == "auto":
-        # call largest_r to find the largest r
-        r = largest_r(u)
-        dim = np.array([l * r, l * r, l * r, 90, 90, 90])
-        transform = mda.transformations.boxdimensions.set_dimensions(dim)
-        u.trajectory.add_transformations(transform)
-        u.atoms.write(filename, frames="all")
-        return filename
-
-    if isinstance(box, (float, int)):
-        r = largest_r(u)
+        dim = np.array([scale * r, scale * r, scale * r, 90, 90, 90])
+    elif isinstance(box, (float, int)):
         if box <= 2 * r:
             raise ValueError(
                 "Sides of box must be greater than 2*r where r is the largest radius enclosing the molecule"
             )
         dim = np.array([box, box, box, 90, 90, 90])
-        transform = mda.transformations.boxdimensions.set_dimensions(dim)
-        u.trajectory.add_transformations(transform)
-        u.atoms.write(filename, frames="all")
-        return filename
+    elif len(box) == 6:
+        dim = np.array(box, dtype=np.float32)
+        if np.any(dim[:2] <= 2 * r):
+            raise ValueError(
+                "Sides of box must be greater than 2*r where r is the largest radius enclosing the molecule"
+            )
+    else:
+        raise ValueError(
+            "box must be None, 'auto', a float, or a 6-element array"
+        )
 
-    if len(box) == 6:
-        dim = np.asarry(box, dtype=np.float32)
-        r = largest_r(u)
-        for x in dim[0:2]:
-            if x <= 2 * r:
-                raise ValueError(
-                    "Sides of box must be greater than 2*r where r is the largest radius enclosing the molecule"
-                )
-        transform = mda.transformations.boxdimensions.set_dimensions(dim)
-        u.trajectory.add_transformations(transform)
-        u.atoms.write(filename, frames="all")
-        return filename
+    transform = mda.transformations.boxdimensions.set_dimensions(dim)
+    u.trajectory.add_transformations(transform)
+    ag_new.atoms.write(filename, frames="all")
+    return ag_new
