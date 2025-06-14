@@ -78,8 +78,9 @@ Notes
 import MDAnalysis as mda
 import numpy as np
 import pathlib
-from typing import Tuple, Optional, List
+from typing import Tuple, Optional, List, Union
 from string import Template
+import rdkit.Chem
 
 from . import sampler, chem, output
 
@@ -104,17 +105,19 @@ epsilon-r                = $epsilon_r
 epsilon_surface          = 0
 
 vdwtype                  = cut-off   ; use shift for L-BFGS
-rvdw                     = 1.0       ; fixed value for force field
+rvdw                     = $rcoulomb ; must match rcoulomb for Verlet lists
 rvdw-switch              = 0         ; 0.8 for l-bfcg
 
 Tcoupl                   = no
 Pcoupl                   = no
 gen_vel                  = no
+                        
+continuation             = yes
 """)
 
 def create_mdp_file(output_file: str,
                    include_paths: Optional[List[str]] = None,
-                   rcoulomb: float = 7.0,
+                   rcoulomb: float = 70.0,
                    epsilon_r: float = 80.0) -> str:
     """create a gromacs mdp file for energy calculations.
     
@@ -125,7 +128,8 @@ def create_mdp_file(output_file: str,
     include_paths : list[str], optional
         list of paths to include in the mdp file. if none, only current directory is included.
     rcoulomb : float, optional
-        coulomb cutoff radius in nm, by default 7.0
+        coulomb cutoff radius in Angstrom, by default 70.0 Angstrom
+        for vacuum or dielectric constant = 80 (water) calculations
     epsilon_r : float, optional
         dielectric constant, by default 80.0 (water)
     
@@ -143,7 +147,7 @@ def create_mdp_file(output_file: str,
     # substitute template variables
     mdp_content = MDP_TEMPLATE.substitute(
         include_statement=include_statement,
-        rcoulomb=rcoulomb,
+        rcoulomb=rcoulomb/10.0,     # convert to nm for GROMACS
         epsilon_r=epsilon_r
     )
     
@@ -152,9 +156,10 @@ def create_mdp_file(output_file: str,
     
     return output_file
 
-def run_sampler(universe: mda.Universe, num_conformers: int = 12, 
+def run_sampler(universe: mda.Universe, num_conformers: int = 12,
                 output_filename: str = "conformers.trr",
-                box_size: float = 150.0) -> Tuple[chem.Molecule, mda.Universe, str]:
+                box: Optional[Union[float, List[float], str]] = "auto",
+                rcoulomb: float = 70.0) -> Tuple[rdkit.Chem.rdchem.Mol, mda.Universe, str]:
     """Generate conformers for a molecule and write them to a trajectory file.
     
     Parameters
@@ -165,23 +170,37 @@ def run_sampler(universe: mda.Universe, num_conformers: int = 12,
         Number of conformers to generate, by default 12
     output_filename : str, optional
         Name of the output trajectory file, by default "conformers.trr"
-    box_size : float, optional
-        Size of the periodic box in Angstroms, by default 150.0
-    
+    box : float, array_like, 'auto', or ``None``, optional
+        There are four different options here to allow for customization
+        of the box (default is "auto"):
+        - ``None: leaves the trajectory unmodified
+        - 'auto': calls :func:`largest_r and adds the value of `rcoulomb` and `buffer`
+        - float: assumes the box is a cube with side lengths equal to the input
+        - array_like: must be a 1x6 array with the first three entries
+          representing the sides of the box and the last three entries
+          representing the angles between them
+    rcoulomb : float, optional
+        coulomb cutoff radius in Angstrom, by default 70.0 Angstrom
+        for vacuum or dielectric constant = 80 (water) calculations.
+        This is used to define the box for the trajectory together with `box`.
+        
     Returns
     -------
-    Tuple[chem.Molecule, mda.Universe, str]
+    Tuple[rdkit.Chem.rdchem.Mol, mda.Universe, str]
         The molecule object, conformer universe, and output filename
     """
     mol = chem.load_mol(universe, add_labels=True)
     dihedrals = chem.find_dihedrals(mol, universe)
 
     conformers = sampler.generate_conformers(mol, dihedrals, num=num_conformers)
-    output.write_pbc_trajectory(conformers, output_filename, box=box_size)
+    output.write_pbc_trajectory(conformers, output_filename, box=box, rcoulomb=rcoulomb)
     return mol, conformers, output_filename
 
-def run_gromacs_energy_calculation(trajectory_file: str,
-                                   output_prefix: str = "simulation") -> None:
+def run_gromacs_energy_calculation(mdp_file: str,
+                                 pdb_file: str,
+                                 top_file: str,
+                                 trajectory_file: str,
+                                 output_prefix: str = "simulation") -> str:
     """Run a GROMACS energy calculation using a pre-generated trajectory.
 
     The energy calculation is performed with ``mdrun -rerun`` and the output is written to an ``edr`` file.
@@ -198,7 +217,7 @@ def run_gromacs_energy_calculation(trajectory_file: str,
         Path to the input trajectory file
     output_prefix : str, optional
         prefix for output files, by default "simulation"
-
+        
     Returns
     -------
     str
@@ -219,9 +238,11 @@ def run_gromacs_energy_calculation(trajectory_file: str,
 
     return f"{output_prefix}_ener.edr"
 
-def generate_and_simulate(itp_file: str, pdb_file: str, mdp_file: str, top_file: str,
+def generate_and_simulate(itp_file: str, pdb_file: str, top_file: str,
+                         mdp_file: Optional[str] = None,
                          num_conformers: int = 12,
-                         box_size: float = 150.0,
+                         box: Optional[Union[float, List[float], str]] = "auto",
+                         rcoulomb: float = 70.0,
                          output_prefix: str = "simulation") -> None:
     """Generate conformers and run a GROMACS simulation in one workflow.
     
@@ -231,14 +252,25 @@ def generate_and_simulate(itp_file: str, pdb_file: str, mdp_file: str, top_file:
         Path to the ITP file
     pdb_file : str
         Path to the PDB file
-    mdp_file : str
-        Path to the GROMACS mdp file
+    mdp_file : str, optional
+        Path to the GROMACS mdp file. If None, a default mdp file is created.
     top_file : str
         Path to the topology file
     num_conformers : int, optional
         Number of conformers to generate, by default 12
-    box_size : float, optional
-        Size of the periodic box in Angstroms, by default 150.0
+    box : float, array_like, 'auto', or ``None``, optional
+        There are four different options here to allow for customization
+        of the box (default is "auto"):
+        - ``None: leaves the trajectory unmodified
+        - 'auto': calls :func:`largest_r and adds the value of `rcoulomb` and `buffer`
+        - float: assumes the box is a cube with side lengths equal to the input
+        - array_like: must be a 1x6 array with the first three entries
+          representing the sides of the box and the last three entries
+          representing the angles between them
+    rcoulomb : float, optional
+        coulomb cutoff radius in Angstrom, by default 70.0 Angstrom
+        for vacuum or dielectric constant = 80 (water) calculations.
+        This is also used to define the box for the trajectory together with `box`.
     output_prefix : str, optional
         Prefix for output files, by default "simulation"
 
@@ -255,9 +287,14 @@ def generate_and_simulate(itp_file: str, pdb_file: str, mdp_file: str, top_file:
     mol, conformers, _ = run_sampler(universe, 
                                    num_conformers=num_conformers,
                                    output_filename=trajectory_file,
-                                   box_size=box_size)
+                                   box=box,
+                                   rcoulomb=rcoulomb)
     
-    # Run GROMACS simulation
+    # Run GROMACS
+    if mdp_file is None:
+        mdp_file = create_mdp_file(f"{output_prefix}.mdp",
+                                   rcoulomb=rcoulomb)
+    
     energy_file = run_gromacs_energy_calculation(mdp_file, pdb_file, top_file,
                                                  trajectory_file,
                                                  output_prefix=output_prefix) 

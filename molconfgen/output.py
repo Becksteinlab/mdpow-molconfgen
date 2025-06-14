@@ -3,32 +3,35 @@
 # sampler.generate_conformers
 
 import MDAnalysis as mda
+import MDAnalysis.transformations
 import numpy as np
 from tqdm import tqdm
+from typing import List, Optional, Union, Any
 
 
-def largest_r(ag):
-    """Find the largest radius to enclose 'ag'.
+def largest_r(ag: Union[MDAnalysis.core.groups.AtomGroup, MDAnalysis.Universe]) -> float:
+    """Calculate the largest radius that encloses the molecule.
 
-    The function iterates over the whole trajectory associated with 'ag'
-    and returns the maximum radius.
-
-    Arguments
-    ---------
+    Parameters
+    ----------
     ag : MDAnalysis.core.groups.AtomGroup or MDAnalysis.Universe
-        Contains the molecule of interest
+        The AtomGroup or Universe containing the molecule.
 
     Returns
     -------
     float
-        The maximum radius needed to enclose the molecule across all frames
+        The largest radius that encloses the molecule.
     """
     u = ag.universe
-    r = np.max([ag.bsphere()[0] for ts in u.trajectory])
+    r = np.max([ag.atoms.bsphere()[0] for ts in u.trajectory])
     return r
 
 
-def write_pbc_trajectory(ag, filename, scale=10.0, box=None):
+def write_pbc_trajectory(ag: Union[MDAnalysis.core.groups.AtomGroup, MDAnalysis.Universe],
+                         filename: str,
+                         box: Optional[Union[float, List[float], str]] = None,
+                         rcoulomb: Optional[float] = None,
+                         buffer: float = 10.0) -> MDAnalysis.core.groups.AtomGroup:
     """Define the box for a trajectory and write to a file.
 
     The function defines a box for the trajectory associated with 'ag' and
@@ -36,7 +39,7 @@ def write_pbc_trajectory(ag, filename, scale=10.0, box=None):
     a file without a box.
 
     This is intended to be used with the output of molconfgen's
-    sampler.generate_conformers, but it is general enough to use with any
+    :func:`sampler.generate_conformers`, but it is general enough to use with any
     universe that contains a molecule and trajectory.
 
     Arguments
@@ -45,18 +48,21 @@ def write_pbc_trajectory(ag, filename, scale=10.0, box=None):
         Contains the molecule of interest and a trajectory
     filename : str
         Name of the trajectory file to be written
-    scale : float, optional
-        Default is 10.0. This is the number that multiplies the largest_r in
-        the box = 'auto' option.
-    box : float, array_like, 'auto', or None, optional
+    box : float, array_like, 'auto', or ``None``, optional
         There are four different options here to allow for customization
         of the box:
-        - None: leaves the trajectory unmodified
-        - 'auto': calls largest_r and multiplies the result by scale
+        - ``None: leaves the trajectory unmodified
+        - 'auto': calls :func:`largest_r and adds the value of `rcoulomb` and `buffer`
         - float: assumes the box is a cube with side lengths equal to the input
         - array_like: must be a 1x6 array with the first three entries
           representing the sides of the box and the last three entries
           representing the angles between them
+    rcoulomb : float, optional
+        The cutoff radius for the Coulomb interaction to be used with `box="auto"`.
+        If None, the Coulomb radius will not be taken into account (and set to 0).
+        (in Angstrom)
+    buffer : float, optional
+        The buffer to be added to the box size with `box="auto"` (in Angstrom).
 
     Returns
     -------
@@ -71,32 +77,34 @@ def write_pbc_trajectory(ag, filename, scale=10.0, box=None):
     """
     u = ag.universe.copy()
     r = largest_r(ag)
-    ag_new = u.atoms[ag.ix]
+    ag_new = u.atoms[ag.atoms.ix]
 
     if box is None:
         ag_new.atoms.write(filename, frames="all")
         return ag_new
 
+    rcoulomb = rcoulomb or 0.0
     if box == "auto":
-        dim = np.array([scale * r, scale * r, scale * r, 90, 90, 90])
+        L = 2 * (r + rcoulomb + buffer)
+        dim = np.array([L, L, L, 90, 90, 90])
     elif isinstance(box, (float, int)):
-        if box <= 2 * r:
+        if box <= 2 * (r + rcoulomb):
             raise ValueError(
-                "Sides of box must be greater than 2*r where r is the largest radius enclosing the molecule"
+                "Sides of box must be greater than 2*(r + rcoulomb) where r is the largest radius enclosing the molecule"
             )
         dim = np.array([box, box, box, 90, 90, 90])
     elif len(box) == 6:
         dim = np.array(box, dtype=np.float32)
-        if np.any(dim[:2] <= 2 * r):
+        if np.any(dim[:2] <= 2 * (r + rcoulomb)):
             raise ValueError(
-                "Sides of box must be greater than 2*r where r is the largest radius enclosing the molecule"
+                "Sides of box must be greater than 2*(r + rcoulomb) where r is the largest radius enclosing the molecule"
             )
     else:
         raise ValueError(
             "box must be None, 'auto', a float, or a 6-element array"
         )
 
-    transform = mda.transformations.boxdimensions.set_dimensions(dim)
+    transform = MDAnalysis.transformations.boxdimensions.set_dimensions(dim)
     u.trajectory.add_transformations(transform)
     ag_new.atoms.write(filename, frames="all")
     return ag_new
