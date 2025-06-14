@@ -15,30 +15,42 @@ The rules for this file:
     * YYYY-MM-DD date format (following ISO 8601)
   * accompany each entry with github issue/PR number (Issue #xyz)
 -->
-## 0.2.0
+
+## 0.3.0
 
 ????-??-??
 
 ### Authors
-- rich-squared
+- xxx
 
 ### Added
-- Added `output.write_pbc_trajectory()` to write trajectory with fixed box size.(issue #2)
+- 
 
 ### Fixed
-<!-- Bug fixes -->
+<!-- Bug Fixes -->
 
 ### Changed
-<!-- Changes in existing functionality -->
+<!-- Changes In Existing Functionality -->
 
 ### Deprecated
-<!-- Soon-to-be removed features -->
+<!-- Soon-To-Be Removed Features -->
 
 ### Removed
-<!-- Removed features -->
+<!-- Removed Features -->
 
+## 0.2.0
 
-## 0.1.0
+2025-06-??
+
+### Authors
+- rich-squared
+- orbeckst
+
+### Added
+- adds new output module with `output.write_pbc_trajectory()` to write trajectory with fixed box size.(Issue #2)
+- adds new workflows module that includes function to generate conformations and calculate the potential energies with GROMACS  
+
+## 0.1.1
 
 2024-09-30
 
