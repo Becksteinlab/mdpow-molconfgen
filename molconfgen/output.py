@@ -5,7 +5,6 @@
 import MDAnalysis as mda
 import MDAnalysis.transformations
 import numpy as np
-from tqdm import tqdm
 from typing import List, Optional, Union, Any
 
 

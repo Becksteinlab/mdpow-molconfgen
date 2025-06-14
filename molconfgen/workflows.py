@@ -210,14 +210,14 @@ def run_gromacs_energy_calculation(mdp_file: str,
     mdp_file : str
         Path to the GROMACS mdp file
     pdb_file : str
-        Path to the input PDB file
+        Path to the PDB file
     top_file : str
         Path to the topology file
     trajectory_file : str
-        Path to the input trajectory file
+        Path to the trajectory file
     output_prefix : str, optional
-        prefix for output files, by default "simulation"
-        
+        Prefix for output files, by default "simulation"
+
     Returns
     -------
     str
@@ -238,14 +238,14 @@ def run_gromacs_energy_calculation(mdp_file: str,
 
     return f"{output_prefix}_ener.edr"
 
-def generate_and_simulate(itp_file: str, pdb_file: str, top_file: str,
-                         mdp_file: Optional[str] = None,
-                         num_conformers: int = 12,
-                         box: Optional[Union[float, List[float], str]] = "auto",
-                         rcoulomb: float = 70.0,
-                         output_prefix: str = "simulation") -> None:
-    """Generate conformers and run a GROMACS simulation in one workflow.
-    
+def conformers_to_energies(itp_file: str, pdb_file: str, top_file: str,
+                          mdp_file: Optional[str] = None,
+                          num_conformers: int = 12,
+                          box: Optional[Union[float, List[float], str]] = "auto",
+                          rcoulomb: float = 70.0,
+                          output_prefix: str = "simulation") -> None:
+    """Generate conformers and run a GROMACS energy calculation in one workflow.
+
     Parameters
     ----------
     itp_file : str
@@ -294,8 +294,14 @@ def generate_and_simulate(itp_file: str, pdb_file: str, top_file: str,
     if mdp_file is None:
         mdp_file = create_mdp_file(f"{output_prefix}.mdp",
                                    rcoulomb=rcoulomb)
+        
+    # Write PDB with box for GROMACS
+    pdb_with_box = f"{output_prefix}_boxed.pdb"
+    output.write_pbc_trajectory(universe, pdb_with_box, box=box, rcoulomb=rcoulomb)
     
-    energy_file = run_gromacs_energy_calculation(mdp_file, pdb_file, top_file,
+    energy_file = run_gromacs_energy_calculation(mdp_file, pdb_with_box, top_file,
                                                  trajectory_file,
                                                  output_prefix=output_prefix) 
     return energy_file
+
+
