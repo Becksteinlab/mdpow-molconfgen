@@ -9,7 +9,6 @@ Use as ::
 """
 
 __all__ = [
-    "MDANALYSIS_LOGO",  # example file of MDAnalysis logo
     # V46-2-methyl-1-nitrobenzene files
     "V46_MOL2",
     "V46_PDB",
@@ -18,8 +17,6 @@ __all__ = [
 ]
 
 import importlib.resources as resources
-
-MDANALYSIS_LOGO = resources.files(__name__) / "mda.txt"
 
 # V46-2-methyl-1-nitrobenzene files
 V46_DIR = resources.files(__name__) / "V46-2-methyl-1-nitrobenzene"
