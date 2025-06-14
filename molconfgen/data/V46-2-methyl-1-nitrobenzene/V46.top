@@ -1,0 +1,21 @@
+; V46.top
+; top file edited from MDPOW equilibrium calculation
+; Richard Richardson edited this file to remove the water/solvent
+; NOTE: This file is processed with mdpow.equil.topology()
+;       which expects EXACTLY this file as input in order to be able
+;       to change it as needed. See the source mdpow/equil.py for details.
+
+; Include forcefield parameters
+#include "oplsaa.ff/forcefield.itp"
+
+; Include compound topology
+
+#include "V46-2-methyl-1-nitrobenzene.itp"
+
+[ system ]
+; Name
+Compound V46
+
+[ molecules ]
+; Compound        #mols
+V46      1
