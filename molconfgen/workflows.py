@@ -243,7 +243,7 @@ def conformers_to_energies(itp_file: str, pdb_file: str, top_file: str,
                           num_conformers: int = 12,
                           box: Optional[Union[float, List[float], str]] = "auto",
                           rcoulomb: float = 70.0,
-                          output_prefix: str = "simulation") -> None:
+                          output_prefix: str = "simulation") -> str:
     """Generate conformers and run a GROMACS energy calculation in one workflow.
 
     Parameters

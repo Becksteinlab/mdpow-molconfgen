@@ -98,8 +98,11 @@ def unique_torsions(dihedral_atom_indices):
     unique : np.array
         The atom indices organized in a 2D array of shape (M, 4)
         where M ≤ N and no two central bonds are the same.
+        Returns an empty array if no dihedrals are provided.
     """
     dihedral_atom_indices = np.asarray(dihedral_atom_indices)
+    if len(dihedral_atom_indices) == 0:
+        return np.array([], dtype=int).reshape(0, 4)
     sorted_centrals = np.sort(dihedral_atom_indices[:, 1:3], axis=1)
     unique_bonds, dihedral_indices = np.unique(sorted_centrals, axis=0, return_index=True)
     return dihedral_atom_indices[dihedral_indices]
