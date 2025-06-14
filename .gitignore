@@ -113,3 +113,8 @@ poetry.lock
 
 # emacs backup files
 *~
+
+
+# temporary files and directories
+SANDBOX/
+tmp/
