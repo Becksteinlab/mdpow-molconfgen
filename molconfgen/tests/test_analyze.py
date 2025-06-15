@@ -8,6 +8,7 @@ from ..data.files import V46_ITP, V46_PDB, V46_TOP
 
 NUM_CONFORMERS = 6  # number of conformers to generate for testing
 
+
 @pytest.fixture(scope="module")
 def setup_workflow():
     """Run the workflow to generate necessary input files for testing analyze functions."""
@@ -17,7 +18,7 @@ def setup_workflow():
         pdb_file=V46_PDB,
         top_file=V46_TOP,
         num_conformers=NUM_CONFORMERS,
-        output_prefix=output_prefix
+        output_prefix=output_prefix,
     )
     return result
 
@@ -35,11 +36,11 @@ def test_analyze_conformers(setup_workflow):
     angles, energies = analyze.analyze_conformers(
         setup_workflow["topology"],
         setup_workflow["conformers"],
-        setup_workflow["energies"]
+        setup_workflow["energies"],
     )
     assert isinstance(angles, np.ndarray)
     assert isinstance(energies, np.ndarray)
     assert len(angles) == NUM_CONFORMERS
     assert len(energies) == NUM_CONFORMERS
-    # simple test 
+    # simple test
     assert np.all((-180 <= angles) & (angles <= 180))

@@ -6,7 +6,15 @@ import rdkit.Chem as rdkit
 import numpy as np
 
 from .. import chem
-from ..data.files import V46_PDB, V46_ITP, V46_MOL2
+from ..data.files import (
+    V46_PDB,
+    V46_ITP,
+    V46_MOL2,
+    V36_PDB,
+    V36_ITP,
+    V39_PDB,
+    V39_ITP,
+)
 
 
 @pytest.fixture
@@ -28,30 +36,43 @@ def test_load_mol(universe):
     assert mol.GetNumAtoms() == universe.atoms.n_atoms
 
 
-def test_find_dihedral_indices(mol, universe):
-    """Test finding dihedral indices in V46.
+@pytest.fixture(
+    params=[
+        # V46: O-N-C-C (indices, atom names)
+        (V46_ITP, V46_PDB, [[2, 1, 0, 4]], [["O9", "N8", "C1", "C2"]]),
+        # V36: O-C-O-C (indices, atom names)
+        (V36_ITP, V36_PDB, [[2, 0, 1, 3]], [["O4", "C1", "O2", "C3"]]),
+        # V39: C-C-C-C (indices, atom names)
+        (
+            V39_ITP,
+            V39_PDB,
+            [[2, 0, 1, 3], [0, 1, 3, 14], [1, 3, 14, 17], [3, 14, 17, 9]],
+            [
+                ["O7", "C1", "O2", "C3"],
+                ["C1", "O2", "C3", "C4"],
+                ["O2", "C3", "C4", "C5"],
+                ["C3", "C4", "C5", "C6"],
+            ],
+        ),
+    ]
+)
+def mol_universe_and_expected(request):
+    itp, pdb, expected_indices, expected_names = request.param
+    universe = mda.Universe(itp, pdb)
+    mol = chem.load_mol(universe)
+    return mol, universe, expected_indices, expected_names
 
-    The rotatable bond of interest in V46 (2-methyl-1-nitrobenzene) is O-N-C-C,
-    where the dihedral is defined by the heavy atoms only.
-    """
+
+def test_find_dihedral_indices(mol_universe_and_expected):
+    """Test finding dihedral indices for V46 and V36."""
+    mol, universe, expected_indices, expected_names = mol_universe_and_expected
     dihedral_indices = chem.find_dihedral_indices(mol)
-
-    # V46 has one rotatable bond (O-N-C-C)
-    assert len(dihedral_indices) == 1
-
-    # Check that the indices form a proper dihedral
-    indices = dihedral_indices[0]
-    assert len(indices) == 4
-
-    # The dihedral should be O-N-C-C
-    assert indices[0] == 2  # O9
-    assert indices[1] == 1  # N8
-    assert indices[2] == 0  # C1
-    assert indices[3] == 4  # C2
-
-    # Verify atom names
-    atoms = [universe.atoms[i].name for i in indices]
-    assert atoms == ["O9", "N8", "C1", "C2"]
+    assert len(dihedral_indices) == len(expected_indices)
+    for idx, indices in enumerate(dihedral_indices):
+        assert len(indices) == 4
+        assert list(indices) == expected_indices[idx]
+        atoms = [universe.atoms[i].name for i in indices]
+        assert atoms == expected_names[idx]
 
 
 def test_find_dihedral_indices_empty():
