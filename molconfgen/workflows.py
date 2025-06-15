@@ -115,6 +115,7 @@ gen_vel                  = no
 continuation             = yes
 """)
 
+
 def create_mdp_file(output_file: str,
                    include_paths: Optional[List[str]] = None,
                    rcoulomb: float = 70.0,
@@ -156,7 +157,31 @@ def create_mdp_file(output_file: str,
     
     return output_file
 
-def run_sampler(universe: mda.Universe, num_conformers: int = 12,
+def create_boxed_pdb(universe, output_prefix, box, rcoulomb):
+    """Write a PDB file with the specified box size for GROMACS.
+    
+    Parameters
+    ----------
+    universe : MDAnalysis.Universe
+        Universe containing the molecule structure
+    output_prefix : str
+        Prefix for the output PDB file
+    box : float, array_like, 'auto', or None
+        Box size specification
+    rcoulomb : float
+        Coulomb cutoff radius in Angstrom
+    
+    Returns
+    -------
+    str
+        Path to the created PDB file
+    """
+    pdb_with_box = f"{output_prefix}_boxed.pdb"
+    output.write_pbc_trajectory(universe, pdb_with_box, box=box, rcoulomb=rcoulomb)
+    return pdb_with_box
+
+
+def run_sampler(universe: mda.Universe, num_conformers: int = 36,
                 output_filename: str = "conformers.trr",
                 box: Optional[Union[float, List[float], str]] = "auto",
                 rcoulomb: float = 70.0) -> Tuple[rdkit.Chem.rdchem.Mol, mda.Universe, str]:
@@ -167,7 +192,7 @@ def run_sampler(universe: mda.Universe, num_conformers: int = 12,
     universe : MDAnalysis.Universe
         Universe containing the molecule structure
     num_conformers : int, optional
-        Number of conformers to generate, by default 12
+        Number of conformers to generate, by default 36
     output_filename : str, optional
         Name of the output trajectory file, by default "conformers.trr"
     box : float, array_like, 'auto', or ``None``, optional
@@ -230,7 +255,7 @@ def run_gromacs_energy_calculation(mdp_file: str,
                    po=f"{output_prefix}_mdout.mdp",
                    o=f"{output_prefix}_topol.tpr")
     
-    # Run the simulation
+    # Run the energy calculation
     gromacs.mdrun(s=f"{output_prefix}_topol.tpr",
                   rerun=trajectory_file,
                   o=f"{output_prefix}_traj.trr",
@@ -240,24 +265,26 @@ def run_gromacs_energy_calculation(mdp_file: str,
 
 def conformers_to_energies(itp_file: str, pdb_file: str, top_file: str,
                           mdp_file: Optional[str] = None,
-                          num_conformers: int = 12,
+                          num_conformers: int = 36,
                           box: Optional[Union[float, List[float], str]] = "auto",
                           rcoulomb: float = 70.0,
                           output_prefix: str = "simulation") -> str:
-    """Generate conformers and run a GROMACS energy calculation in one workflow.
-
+    """Generate conformers and calculate their energies using GROMACS.
+    
     Parameters
     ----------
     itp_file : str
         Path to the ITP file
     pdb_file : str
         Path to the PDB file
+    top_file : str
+        Path to the TOP file
     mdp_file : str, optional
         Path to the GROMACS mdp file. If None, a default mdp file is created.
     top_file : str
         Path to the topology file
     num_conformers : int, optional
-        Number of conformers to generate, by default 12
+        Number of conformers to generate, by default 36
     box : float, array_like, 'auto', or ``None``, optional
         There are four different options here to allow for customization
         of the box (default is "auto"):
@@ -273,35 +300,42 @@ def conformers_to_energies(itp_file: str, pdb_file: str, top_file: str,
         This is also used to define the box for the trajectory together with `box`.
     output_prefix : str, optional
         Prefix for output files, by default "simulation"
-
+    
     Returns
     -------
     str
         Path to the energy file
     """
-    # Load the universe
     universe = mda.Universe(itp_file, pdb_file)
     
     # Generate conformers
+    # ------------------
     trajectory_file = f"{output_prefix}_conformers.trr"
-    mol, conformers, _ = run_sampler(universe, 
-                                   num_conformers=num_conformers,
-                                   output_filename=trajectory_file,
-                                   box=box,
-                                   rcoulomb=rcoulomb)
+    _, conformer_universe, conformer_trr = run_sampler(universe, 
+                                     num_conformers=num_conformers,
+                                     output_filename=trajectory_file,
+                                     box=box,
+                                     rcoulomb=rcoulomb)
     
-    # Run GROMACS
+    # Evaluate energies with GROMACS
+    # ------------------------------
+    # Create MDP file if not provided
     if mdp_file is None:
-        mdp_file = create_mdp_file(f"{output_prefix}.mdp",
-                                   rcoulomb=rcoulomb)
-        
-    # Write PDB with box for GROMACS
-    pdb_with_box = f"{output_prefix}_boxed.pdb"
-    output.write_pbc_trajectory(universe, pdb_with_box, box=box, rcoulomb=rcoulomb)
+        mdp_file = create_mdp_file(f"{output_prefix}.mdp", rcoulomb=rcoulomb)
     
-    energy_file = run_gromacs_energy_calculation(mdp_file, pdb_with_box, top_file,
-                                                 trajectory_file,
-                                                 output_prefix=output_prefix) 
+    # need input system with sufficiently large box for GROMACS
+    # (calculate box size from largest_r and add buffer as for run_sampler)
+    pdb_with_box = create_boxed_pdb(conformer_universe, output_prefix, box, rcoulomb)
+
+    # Run GROMACS energy calculation
+    energy_file = run_gromacs_energy_calculation(
+        mdp_file=mdp_file,
+        pdb_file=pdb_with_box,
+        top_file=top_file,
+        trajectory_file=conformer_trr,
+        output_prefix=output_prefix
+    )
+    
     return energy_file
 
 
