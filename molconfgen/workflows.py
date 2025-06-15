@@ -247,8 +247,8 @@ def run_gromacs_energy_calculation(
 
     The energy calculation is performed with ``mdrun -rerun`` and the output is written to an ``edr`` file.
 
-    We generate a suitable TPR file from the MDP, TOP, and PDB files. The TOP file should reference the ITP file. 
-    If it is located in the same location as the ITP file then ``grompp`` will automatically find the ITP file. 
+    We generate a suitable TPR file from the MDP, TOP, and PDB files. The TOP file should reference the ITP file.
+    If it is located in the same location as the ITP file then ``grompp`` will automatically find the ITP file.
     Otherwise, adjust the search path in the MDP file's ``include`` statement.
 
     Parameters
@@ -291,8 +291,8 @@ def run_gromacs_energy_calculation(
     )
 
     return {
-        "energies":f"{output_prefix}_ener.edr",
-        "topology":f"{output_prefix}_topol.tpr",
+        "energies": f"{output_prefix}_ener.edr",
+        "topology": f"{output_prefix}_topol.tpr",
     }
 
 
@@ -340,8 +340,8 @@ def conformers_to_energies(
     -------
     dict
         Dictionary containing:
-        - topology: Path to the topology file        
-        - conformers: Path to the conformer trajectory file        
+        - topology: Path to the topology file
+        - conformers: Path to the conformer trajectory file
         - energies: Path to the energy file
     """
     universe = mda.Universe(itp_file, pdb_file)
@@ -380,6 +380,6 @@ def conformers_to_energies(
 
     return {
         "topology": result["topology"],
-        "conformers": conformer_trr,        
+        "conformers": conformer_trr,
         "energies": result["energies"],
     }
