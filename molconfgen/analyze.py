@@ -14,7 +14,7 @@ from . import chem
 
 def get_energies(edr_file: str, energy_term: str = "Potential") -> np.ndarray:
     """Extract potential energies from a GROMACS energy file.
-    
+
     Parameters
     ----------
     edr_file : str
@@ -34,3 +34,73 @@ def get_energies(edr_file: str, energy_term: str = "Potential") -> np.ndarray:
     return energies[energy_term]
 
 
+def get_dihedral_angles(
+    universe: mda.Universe, **kwargs
+) -> Tuple[np.ndarray, List[mda.AtomGroup]]:
+    """Get dihedral angles for all frames in a trajectory.
+
+    Parameters
+    ----------
+    universe : mda.Universe
+        MDAnalysis Universe containing the trajectory
+    **kwargs : dict
+        Additional keyword arguments to pass to the Dihedral.run() method
+
+    Returns
+    -------
+    tuple
+        - angles : np.ndarray
+            Array of dihedral angles for each frame
+        - dihedral_groups : List[mda.AtomGroup]
+            List of atom groups defining each dihedral
+
+    See Also
+    --------
+    :class:`MDAnalysis.analysis.dihedrals.Dihedral`
+        The Dihedral analysis class that is used to calculate the dihedral angles.
+    """
+
+    # Get molecule and find dihedral indices
+    mol = chem.load_mol(universe)
+    dihedral_indices = chem.find_dihedral_indices(mol)
+
+    # Create atom groups for each dihedral
+    dihedral_groups = []
+    for indices in dihedral_indices:
+        dihedral_groups.append(universe.atoms[indices])
+
+    # Calculate dihedral angles
+    dihedral_analysis = Dihedral(dihedral_groups).run(**kwargs)
+
+    return dihedral_analysis.results.angles, dihedral_groups
+
+
+def analyze_conformers(
+    topology_file: str, trajectory_file: str, energy_file: str
+) -> Tuple[np.ndarray, Optional[np.ndarray]]:
+    """Analyze conformers from a trajectory file.
+
+    Note that the system should only contain the molecule of interest.
+
+    Parameters
+    ----------
+    topology_file : str
+        Path to the topology file (.pdb or .itp or .tpr)
+    trajectory_file : str
+        Path to the trajectory file (.trr)
+    energy_file : str
+        Path to the energy file (.edr)
+
+    Returns
+    -------
+    tuple
+        - angles : np.ndarray
+            Array of dihedral angles for each frame
+        - energies : np.ndarray
+            Array of energies for each frame
+    """
+    u = mda.Universe(topology_file, trajectory_file)
+    angles, _ = get_dihedral_angles(u)
+    energies = get_energies(energy_file)
+
+    return angles, energies

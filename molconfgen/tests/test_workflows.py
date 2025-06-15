@@ -22,7 +22,7 @@ def test_conformers_to_energies(universe, num_conformers=10):
     """Test the conformers_to_energies workflow."""
     with tempfile.TemporaryDirectory() as tmpdir:
         # Run the workflow with auto box size
-        ener = workflows.conformers_to_energies(
+        result = workflows.conformers_to_energies(
             itp_file=V46_ITP,
             pdb_file=V46_PDB,
             top_file=V46_TOP,
@@ -32,11 +32,13 @@ def test_conformers_to_energies(universe, num_conformers=10):
             output_prefix=os.path.join(tmpdir, "test"),
         )
 
-        # Check that the energy file exists
-        assert os.path.exists(ener)
+        # Check that all files exist
+        assert os.path.exists(result["energies"])
+        assert os.path.exists(result["topology"])
+        assert os.path.exists(result["conformers"])
 
         # Check that we can read the energy file
-        energies = analyze.get_energies(ener)
+        energies = analyze.get_energies(result["energies"])
         assert len(energies) == num_conformers
         assert isinstance(energies, np.ndarray)
 
@@ -60,7 +62,7 @@ def test_run_gromacs_energy_calculation(universe, num_conformers=10, box=200):
         )
 
         # Run energy calculation
-        edr_file = workflows.run_gromacs_energy_calculation(
+        result = workflows.run_gromacs_energy_calculation(
             mdp_file=workflows.create_mdp_file("energy.mdp", rcoulomb=70.0),
             pdb_file=pdb_boxed,
             top_file=V46_TOP,
@@ -69,10 +71,11 @@ def test_run_gromacs_energy_calculation(universe, num_conformers=10, box=200):
         )
 
         # Check that energy file exists
-        assert os.path.exists(edr_file)
+        assert os.path.exists(result["energies"])
+        assert os.path.exists(result["topology"])
 
         # Check that we can read energies
-        energies = analyze.get_energies(edr_file)
+        energies = analyze.get_energies(result["energies"])
         assert len(energies) == num_conformers
         assert isinstance(energies, np.ndarray)
 

@@ -242,10 +242,14 @@ def run_gromacs_energy_calculation(
     top_file: str,
     trajectory_file: str,
     output_prefix: str = "simulation",
-) -> str:
+) -> dict:
     """Run a GROMACS energy calculation using a pre-generated trajectory.
 
     The energy calculation is performed with ``mdrun -rerun`` and the output is written to an ``edr`` file.
+
+    We generate a suitable TPR file from the MDP, TOP, and PDB files. The TOP file should reference the ITP file. 
+    If it is located in the same location as the ITP file then ``grompp`` will automatically find the ITP file. 
+    Otherwise, adjust the search path in the MDP file's ``include`` statement.
 
     Parameters
     ----------
@@ -254,7 +258,7 @@ def run_gromacs_energy_calculation(
     pdb_file : str
         Path to the PDB file
     top_file : str
-        Path to the topology file
+        Path to the GROMACS topology file (.top)
     trajectory_file : str
         Path to the trajectory file
     output_prefix : str, optional
@@ -262,8 +266,10 @@ def run_gromacs_energy_calculation(
 
     Returns
     -------
-    str
-        Path to the energy file
+    dict
+        Dictionary containing:
+        - energies: Path to the energy file (EDR)
+        - topology: Path to the generated topology file (TPR)
     """
     import gromacs
 
@@ -284,7 +290,10 @@ def run_gromacs_energy_calculation(
         e=f"{output_prefix}_ener.edr",
     )
 
-    return f"{output_prefix}_ener.edr"
+    return {
+        "energies":f"{output_prefix}_ener.edr",
+        "topology":f"{output_prefix}_topol.tpr",
+    }
 
 
 def conformers_to_energies(
@@ -296,21 +305,19 @@ def conformers_to_energies(
     box: Optional[Union[float, List[float], str]] = "auto",
     rcoulomb: float = 70.0,
     output_prefix: str = "simulation",
-) -> str:
+) -> dict:
     """Generate conformers and calculate their energies using GROMACS.
 
     Parameters
     ----------
     itp_file : str
-        Path to the ITP file
+        Path to the GROMACS ITP file (used as a topology file for MDAnalysis)
     pdb_file : str
         Path to the PDB file
     top_file : str
-        Path to the TOP file
+        Path to the GROMACS topology file (.top)
     mdp_file : str, optional
         Path to the GROMACS mdp file. If None, a default mdp file is created.
-    top_file : str
-        Path to the topology file
     num_conformers : int, optional
         Number of conformers to generate, by default 36
     box : float, array_like, 'auto', or ``None``, optional
@@ -331,8 +338,11 @@ def conformers_to_energies(
 
     Returns
     -------
-    str
-        Path to the energy file
+    dict
+        Dictionary containing:
+        - topology: Path to the topology file        
+        - conformers: Path to the conformer trajectory file        
+        - energies: Path to the energy file
     """
     universe = mda.Universe(itp_file, pdb_file)
 
@@ -360,7 +370,7 @@ def conformers_to_energies(
     )
 
     # Run GROMACS energy calculation
-    energy_file = run_gromacs_energy_calculation(
+    result = run_gromacs_energy_calculation(
         mdp_file=mdp_file,
         pdb_file=pdb_with_box,
         top_file=top_file,
@@ -368,4 +378,8 @@ def conformers_to_energies(
         output_prefix=output_prefix,
     )
 
-    return energy_file
+    return {
+        "topology": result["topology"],
+        "conformers": conformer_trr,        
+        "energies": result["energies"],
+    }
