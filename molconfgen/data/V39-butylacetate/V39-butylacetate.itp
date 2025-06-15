@@ -1,0 +1,190 @@
+; input pdb SMILES : C(OCCCC)(=O)C
+; Script arguments : V39-butylacetate.mol2
+
+[ moleculetype ]
+; Name      nrexcl
+V39              3
+
+[ atoms ]
+; atomnr  atomtype   resnr  resname  atomname  chargegrp   charge       mass
+       1  opls_465      1      V39        C1          1     0.510   12.01100 ; C_2 # AA C:   esters - for R on C=O, use #280-#282
+       2  opls_467      1      V39        O2          1    -0.330   15.99940 ; OS # AA -OR: ester 
+       3  opls_466      1      V39        O7          1    -0.430   15.99940 ; O_2 # AA =O:  esters   
+       4  opls_490      1      V39        C3          2     0.190   12.01100 ; CT # C(H2OS) ethyl ester
+       5  opls_469      1      V39        H9          2     0.030    1.00800 ; HC # methoxy Hs in esters
+       6  opls_469      1      V39       H10          2     0.030    1.00800 ; HC # methoxy Hs in esters
+       7  opls_282      1      V39       H18          4     0.060    1.00800 ; HC # AA H on C-alpha in ketone & aldehyde
+       8  opls_282      1      V39       H19          5     0.060    1.00800 ; HC # AA H on C-alpha in ketone & aldehyde
+       9  opls_282      1      V39       H20          6     0.060    1.00800 ; HC # AA H on C-alpha in ketone & aldehyde
+      10  opls_135      1      V39        C6          9    -0.180   12.01100 ; CT # alkane CH3 
+      11  opls_140      1      V39       H15          9     0.060    1.00800 ; HC # alkane H.
+      12  opls_140      1      V39       H16          9     0.060    1.00800 ; HC # alkane H.
+      13  opls_140      1      V39       H17          9     0.060    1.00800 ; HC # alkane H.
+      14  opls_135      1      V39        C8         15    -0.180   12.01100 ; CT # alkane CH3 
+      15  opls_136      1      V39        C4         25    -0.120   12.01100 ; CT # alkane CH2 
+      16  opls_140      1      V39       H11         25     0.060    1.00800 ; HC # alkane H.
+      17  opls_140      1      V39       H12         25     0.060    1.00800 ; HC # alkane H.
+      18  opls_136      1      V39        C5         29    -0.120   12.01100 ; CT # alkane CH2 
+      19  opls_140      1      V39       H13         29     0.060    1.00800 ; HC # alkane H.
+      20  opls_140      1      V39       H14         29     0.060    1.00800 ; HC # alkane H.
+; Total charge : 0.000 ### Number of unassigned atoms : 0/20
+
+[ bonds ]
+; ai   aj  funct  r  k
+   1    2      1  ; C_2-OS # J.Comp.Chem.1990,11,1181 SKF8
+   1    3      1  ; C_2-O_2 #
+   1   14      1  ; C_2-CT # 
+   2    4      1  ; OS-CT # (CT-OS)  
+   4   15      1  ; CT-CT # CHARMM 22 parameter file
+   4    5      1  ; CT-HC # CHARMM 22 parameter file
+   4    6      1  ; CT-HC # CHARMM 22 parameter file
+  15   18      1  ; CT-CT # CHARMM 22 parameter file
+  15   16      1  ; CT-HC # CHARMM 22 parameter file
+  15   17      1  ; CT-HC # CHARMM 22 parameter file
+  18   10      1  ; CT-CT # CHARMM 22 parameter file
+  18   19      1  ; CT-HC # CHARMM 22 parameter file
+  18   20      1  ; CT-HC # CHARMM 22 parameter file
+  10   11      1  ; CT-HC # CHARMM 22 parameter file
+  10   12      1  ; CT-HC # CHARMM 22 parameter file
+  10   13      1  ; CT-HC # CHARMM 22 parameter file
+  14    7      1  ; CT-HC # CHARMM 22 parameter file
+  14    8      1  ; CT-HC # CHARMM 22 parameter file
+  14    9      1  ; CT-HC # CHARMM 22 parameter file
+
+[ angles ]
+; ai   aj   ak  funct  theta   cth
+   2    1    3      1  ; OS-C_2-O_2 # (O_2-C_2-OS)  J.Comp.Chem.1990,11,1181 for SKF8
+   2    1   14      1  ; OS-C_2-CT # -idem-
+   3    1   14      1  ; O_2-C_2-CT # (CT-C_2-O_2)  
+   1    2    4      1  ; C_2-OS-CT # -idem-
+   2    4   15      1  ; OS-CT-CT # (CT-CT-OS)  
+   2    4    5      1  ; OS-CT-HC # (HC-CT-OS)  SUG
+   2    4    6      1  ; OS-CT-HC # (HC-CT-OS)  SUG
+  15    4    5      1  ; CT-CT-HC # CHARMM 22 parameter file
+  15    4    6      1  ; CT-CT-HC # CHARMM 22 parameter file
+   5    4    6      1  ; HC-CT-HC # CHARMM 22 parameter file
+   4   15   18      1  ; CT-CT-CT # CHARMM 22 parameter file
+   4   15   16      1  ; CT-CT-HC # CHARMM 22 parameter file
+   4   15   17      1  ; CT-CT-HC # CHARMM 22 parameter file
+  18   15   16      1  ; CT-CT-HC # CHARMM 22 parameter file
+  18   15   17      1  ; CT-CT-HC # CHARMM 22 parameter file
+  16   15   17      1  ; HC-CT-HC # CHARMM 22 parameter file
+  15   18   10      1  ; CT-CT-CT # CHARMM 22 parameter file
+  15   18   19      1  ; CT-CT-HC # CHARMM 22 parameter file
+  15   18   20      1  ; CT-CT-HC # CHARMM 22 parameter file
+  10   18   19      1  ; CT-CT-HC # CHARMM 22 parameter file
+  10   18   20      1  ; CT-CT-HC # CHARMM 22 parameter file
+  19   18   20      1  ; HC-CT-HC # CHARMM 22 parameter file
+  18   10   11      1  ; CT-CT-HC # CHARMM 22 parameter file
+  18   10   12      1  ; CT-CT-HC # CHARMM 22 parameter file
+  18   10   13      1  ; CT-CT-HC # CHARMM 22 parameter file
+  11   10   12      1  ; HC-CT-HC # CHARMM 22 parameter file
+  11   10   13      1  ; HC-CT-HC # CHARMM 22 parameter file
+  12   10   13      1  ; HC-CT-HC # CHARMM 22 parameter file
+   1   14    7      1  ; C_2-CT-HC # 
+   1   14    8      1  ; C_2-CT-HC # 
+   1   14    9      1  ; C_2-CT-HC # 
+   7   14    8      1  ; HC-CT-HC # CHARMM 22 parameter file
+   7   14    9      1  ; HC-CT-HC # CHARMM 22 parameter file
+   8   14    9      1  ; HC-CT-HC # CHARMM 22 parameter file
+
+[ dihedrals ]
+; ai   aj   ak   al  funct   C0  ...  C5
+   3    1    2    4      3     ; O_2-C_2-OS-CT # (CT-OS-C_2-O_2)  esters 
+  14    1    2    4      3     ; CT-C_2-OS-CT # esters 
+   2    1   14    7      3     ; OS-C_2-CT-HC # (HC-CT-C_2-OS)  esters 
+   2    1   14    8      3     ; OS-C_2-CT-HC # (HC-CT-C_2-OS)  esters 
+   2    1   14    9      3     ; OS-C_2-CT-HC # (HC-CT-C_2-OS)  esters 
+   3    1   14    7      3     ; O_2-C_2-CT-HC # (HC-CT-C_2-O_2)  aldehyde, ketone, ester
+   3    1   14    8      3     ; O_2-C_2-CT-HC # (HC-CT-C_2-O_2)  aldehyde, ketone, ester
+   3    1   14    9      3     ; O_2-C_2-CT-HC # (HC-CT-C_2-O_2)  aldehyde, ketone, ester
+   1    2    4   15      3     ; C_2-OS-CT-CT # esters 
+   1    2    4    5      3     ; C_2-OS-CT-HC # esters
+   1    2    4    6      3     ; C_2-OS-CT-HC # esters
+   2    4   15   18      3     ; OS-CT-CT-CT # (CT-CT-CT-OS)  alcohols, ethers AA
+   2    4   15   16      3     ; OS-CT-CT-HC # (HC-CT-CT-OS)  alcohols, ethers AA
+   2    4   15   17      3     ; OS-CT-CT-HC # (HC-CT-CT-OS)  alcohols, ethers AA
+   5    4   15   18      3     ; HC-CT-CT-CT # (CT-CT-CT-HC)  hydrocarbon all-atom
+   5    4   15   16      3     ; HC-CT-CT-HC # hydrocarbon *new* 11/99
+   5    4   15   17      3     ; HC-CT-CT-HC # hydrocarbon *new* 11/99
+   6    4   15   18      3     ; HC-CT-CT-CT # (CT-CT-CT-HC)  hydrocarbon all-atom
+   6    4   15   16      3     ; HC-CT-CT-HC # hydrocarbon *new* 11/99
+   6    4   15   17      3     ; HC-CT-CT-HC # hydrocarbon *new* 11/99
+   4   15   18   10      3     ; CT-CT-CT-CT # hydrocarbon all-atom
+   4   15   18   19      3     ; CT-CT-CT-HC # hydrocarbon all-atom
+   4   15   18   20      3     ; CT-CT-CT-HC # hydrocarbon all-atom
+  16   15   18   10      3     ; HC-CT-CT-CT # (CT-CT-CT-HC)  hydrocarbon all-atom
+  16   15   18   19      3     ; HC-CT-CT-HC # hydrocarbon *new* 11/99
+  16   15   18   20      3     ; HC-CT-CT-HC # hydrocarbon *new* 11/99
+  17   15   18   10      3     ; HC-CT-CT-CT # (CT-CT-CT-HC)  hydrocarbon all-atom
+  17   15   18   19      3     ; HC-CT-CT-HC # hydrocarbon *new* 11/99
+  17   15   18   20      3     ; HC-CT-CT-HC # hydrocarbon *new* 11/99
+  15   18   10   11      3     ; CT-CT-CT-HC # hydrocarbon all-atom
+  15   18   10   12      3     ; CT-CT-CT-HC # hydrocarbon all-atom
+  15   18   10   13      3     ; CT-CT-CT-HC # hydrocarbon all-atom
+  19   18   10   11      3     ; HC-CT-CT-HC # hydrocarbon *new* 11/99
+  19   18   10   12      3     ; HC-CT-CT-HC # hydrocarbon *new* 11/99
+  19   18   10   13      3     ; HC-CT-CT-HC # hydrocarbon *new* 11/99
+  20   18   10   11      3     ; HC-CT-CT-HC # hydrocarbon *new* 11/99
+  20   18   10   12      3     ; HC-CT-CT-HC # hydrocarbon *new* 11/99
+  20   18   10   13      3     ; HC-CT-CT-HC # hydrocarbon *new* 11/99
+
+[ dihedrals ]
+; impropers
+; ai   aj   ak   al  funct  improper
+   2   14    1    3      1  improper_O_C_X_Y       ; OS-CT-C_2-O_2
+
+[ pairs ]
+; ai   aj  funct
+   1   15      1
+   1    5      1
+   1    6      1
+   2    7      1
+   2    8      1
+   2    9      1
+   2   18      1
+   2   16      1
+   2   17      1
+   4    3      1
+   4   14      1
+   4   10      1
+   4   19      1
+   4   20      1
+  15   11      1
+  15   12      1
+  15   13      1
+  18    5      1
+  18    6      1
+  10   16      1
+  10   17      1
+   3    7      1
+   3    8      1
+   3    9      1
+   5   16      1
+   5   17      1
+   6   16      1
+   6   17      1
+  16   19      1
+  16   20      1
+  17   19      1
+  17   20      1
+  19   11      1
+  19   12      1
+  19   13      1
+  20   11      1
+  20   12      1
+  20   13      1
+
+#ifdef POSRES
+[ position_restraints ]
+; atom  type      fx      fy      fz
+     1     1    1000    1000    1000
+     2     1    1000    1000    1000
+     4     1    1000    1000    1000
+    15     1    1000    1000    1000
+    18     1    1000    1000    1000
+    10     1    1000    1000    1000
+     3     1    1000    1000    1000
+    14     1    1000    1000    1000
+#endif
+

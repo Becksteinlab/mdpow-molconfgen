@@ -18,6 +18,10 @@ __all__ = [
     "V36_PDB",
     "V36_ITP",
     "V36_TOP",
+    # V39-butylacetate files
+    "V39_PDB",
+    "V39_ITP",
+    "V39_TOP",
 ]
 
 import importlib.resources as resources
@@ -34,3 +38,9 @@ V36_DIR = resources.files(__name__) / "V36-methylacetate"
 V36_PDB = V36_DIR / "V36.pdb"
 V36_ITP = V36_DIR / "V36-methylacetate.itp"
 V36_TOP = V36_DIR / "V36.top"
+
+# V39-butylacetate files
+V39_DIR = resources.files(__name__) / "V39-butylacetate"
+V39_PDB = V39_DIR / "V39-butylacetate.pdb"
+V39_ITP = V39_DIR / "V39-butylacetate.itp"
+V39_TOP = V39_DIR / "V39.top"
