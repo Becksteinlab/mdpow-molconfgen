@@ -1,0 +1,20 @@
+; V36.top
+; This is a top file edited from the top file from MDPOW equillibrium calculation
+; Richard Richardson edited this file and he is not sure if it works
+; The goal is to have the topology of just methylacetate, so he 
+; removed the water/solvent
+
+; Include forcefield parameters
+#include "oplsaa.ff/forcefield.itp"
+
+; Include compound topology
+
+#include "V36-methylacetate.itp"
+
+[ system ]
+; Name
+Compound V36 in water
+
+[ molecules ]
+; Compound        #mols
+V36               1
