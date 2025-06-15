@@ -5,6 +5,7 @@ import numpy as np
 import rdkit.Chem
 import MDAnalysis as mda
 
+
 def load_mol(u, add_labels=False):
     """Create RDKIT mol from a Universe.
 
@@ -34,7 +35,8 @@ def load_mol(u, add_labels=False):
         mol = u.atoms.convert_to("RDKIT")
     except AttributeError:
         from MDAnalysis.topology.guessers import guess_types
-        u.add_TopologyAttr('elements', guess_types(u.atoms.names))
+
+        u.add_TopologyAttr("elements", guess_types(u.atoms.names))
         mol = u.atoms.convert_to("RDKIT")
 
     # TODO: we could check if coordinates are present and if not,
@@ -104,12 +106,15 @@ def unique_torsions(dihedral_atom_indices):
     if len(dihedral_atom_indices) == 0:
         return np.array([], dtype=int).reshape(0, 4)
     sorted_centrals = np.sort(dihedral_atom_indices[:, 1:3], axis=1)
-    unique_bonds, dihedral_indices = np.unique(sorted_centrals, axis=0, return_index=True)
+    unique_bonds, dihedral_indices = np.unique(
+        sorted_centrals, axis=0, return_index=True
+    )
     return dihedral_atom_indices[dihedral_indices]
 
 
-def find_dihedral_indices(mol, unique=True,
-                          SMARTS='[!#1]~[!$(*#*)&!D1]-!@[!$(*#*)&!D1]~[!#1]'):
+def find_dihedral_indices(
+    mol, unique=True, SMARTS="[!#1]~[!$(*#*)&!D1]-!@[!$(*#*)&!D1]~[!#1]"
+):
     """Extract indices of all dihedrals in a molecule.
 
     Arguments

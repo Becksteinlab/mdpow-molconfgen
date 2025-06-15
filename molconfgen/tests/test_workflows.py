@@ -29,12 +29,12 @@ def test_conformers_to_energies(universe, num_conformers=10):
             num_conformers=num_conformers,
             box="auto",  # Let workflow determine box size
             rcoulomb=70.0,
-            output_prefix=os.path.join(tmpdir, "test")
+            output_prefix=os.path.join(tmpdir, "test"),
         )
-        
+
         # Check that the energy file exists
         assert os.path.exists(ener)
-        
+
         # Check that we can read the energy file
         energies = analyze.get_energies(ener)
         assert len(energies) == num_conformers
@@ -50,12 +50,14 @@ def test_run_gromacs_energy_calculation(universe, num_conformers=10, box=200):
             universe,
             num_conformers=num_conformers,
             box=box,
-            output_filename=traj_file
+            output_filename=traj_file,
         )
-        
+
         output_prefix = os.path.join(tmpdir, "test")
 
-        pdb_boxed = workflows.create_boxed_pdb(universe, output_prefix, box=box, rcoulomb=70.0)
+        pdb_boxed = workflows.create_boxed_pdb(
+            universe, output_prefix, box=box, rcoulomb=70.0
+        )
 
         # Run energy calculation
         edr_file = workflows.run_gromacs_energy_calculation(
@@ -63,29 +65,37 @@ def test_run_gromacs_energy_calculation(universe, num_conformers=10, box=200):
             pdb_file=pdb_boxed,
             top_file=V46_TOP,
             trajectory_file=traj_file,
-            output_prefix=output_prefix
+            output_prefix=output_prefix,
         )
-        
+
         # Check that energy file exists
         assert os.path.exists(edr_file)
-        
+
         # Check that we can read energies
         energies = analyze.get_energies(edr_file)
         assert len(energies) == num_conformers
         assert isinstance(energies, np.ndarray)
 
 
-def test_create_boxed_pdb(universe, reference_L=166.597, rcoulomb=70.0, box="auto"):
+def test_create_boxed_pdb(
+    universe, reference_L=166.597, rcoulomb=70.0, box="auto"
+):
     """Test the create_boxed_pdb function."""
     with tempfile.TemporaryDirectory() as tmpdir:
         output_prefix = os.path.join(tmpdir, "test")
-        pdb_with_box = workflows.create_boxed_pdb(universe, output_prefix, box, rcoulomb)
+        pdb_with_box = workflows.create_boxed_pdb(
+            universe, output_prefix, box, rcoulomb
+        )
         assert os.path.exists(pdb_with_box)
         # Load the created PDB with MDAnalysis
         u = mda.Universe(pdb_with_box)
         # Check that the box dimensions are correct
-        assert np.allclose(u.dimensions[3:], [90, 90, 90]) # angles are 90 degrees
-        assert np.allclose(u.dimensions[:3], [reference_L, reference_L, reference_L])
+        assert np.allclose(
+            u.dimensions[3:], [90, 90, 90]
+        )  # angles are 90 degrees
+        assert np.allclose(
+            u.dimensions[:3], [reference_L, reference_L, reference_L]
+        )
 
 
 def test_run_sampler(universe, num_conformers=5):
@@ -97,7 +107,7 @@ def test_run_sampler(universe, num_conformers=5):
             num_conformers=num_conformers,
             output_filename=output_filename,
             box="auto",
-            rcoulomb=70.0
+            rcoulomb=70.0,
         )
         assert os.path.exists(output_filename)
         assert filename == output_filename

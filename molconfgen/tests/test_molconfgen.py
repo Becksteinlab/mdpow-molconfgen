@@ -10,5 +10,3 @@ import sys
 def test_molconfgen_imported():
     """Sample test, will always pass so long as import statement worked"""
     assert "molconfgen" in sys.modules
-
-

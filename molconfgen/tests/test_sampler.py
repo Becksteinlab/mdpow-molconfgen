@@ -20,21 +20,16 @@ def test_generate_conformers(universe):
     # Create a list of dihedrals for V46
     dih = universe.atoms[[2, 1, 0, 4]].dihedral
     dihedrals = [dih]
-    
+
     # Convert Universe to RDKit molecule
     mol = chem.load_mol(universe)
-    
+
     # Generate conformers
     u = sampler.generate_conformers(mol, dihedrals, num=5)
-    
+
     # Check that we got the expected number of conformers
     assert len(u.trajectory) == 5
-    
+
     # Check that the molecule is an RDKit molecule
-    assert hasattr(mol, 'GetNumAtoms')
+    assert hasattr(mol, "GetNumAtoms")
     assert mol.GetNumAtoms() == universe.atoms.n_atoms
-
-
-
-
-

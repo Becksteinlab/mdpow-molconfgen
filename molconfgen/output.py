@@ -8,7 +8,9 @@ import numpy as np
 from typing import List, Optional, Union, Any
 
 
-def largest_r(ag: Union[MDAnalysis.core.groups.AtomGroup, MDAnalysis.Universe]) -> float:
+def largest_r(
+    ag: Union[MDAnalysis.core.groups.AtomGroup, MDAnalysis.Universe],
+) -> float:
     """Calculate the largest radius that encloses the molecule.
 
     Parameters
@@ -26,11 +28,13 @@ def largest_r(ag: Union[MDAnalysis.core.groups.AtomGroup, MDAnalysis.Universe]) 
     return r
 
 
-def write_pbc_trajectory(ag: Union[MDAnalysis.core.groups.AtomGroup, MDAnalysis.Universe],
-                         filename: str,
-                         box: Optional[Union[float, List[float], str]] = None,
-                         rcoulomb: Optional[float] = None,
-                         buffer: float = 10.0) -> MDAnalysis.core.groups.AtomGroup:
+def write_pbc_trajectory(
+    ag: Union[MDAnalysis.core.groups.AtomGroup, MDAnalysis.Universe],
+    filename: str,
+    box: Optional[Union[float, List[float], str]] = None,
+    rcoulomb: Optional[float] = None,
+    buffer: float = 10.0,
+) -> MDAnalysis.core.groups.AtomGroup:
     """Define the box for a trajectory and write to a file.
 
     The function defines a box for the trajectory associated with 'ag' and

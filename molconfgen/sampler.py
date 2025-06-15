@@ -11,7 +11,7 @@ import rdkit
 from rdkit.Chem.rdMolTransforms import SetDihedralDeg
 
 
-def anglespace(start, num, total=360.):
+def anglespace(start, num, total=360.0):
     """generate num-1 equally spaced angles in degree over the range total, starting at start"""
     return start + np.linspace(0, total, num, endpoint=False)
 
@@ -81,8 +81,9 @@ def generate_conformers(mol, dihedrals, num=12):
 
     conformer = mol.GetConformer()
 
-    for i_frame, phis in tqdm(enumerate(itertools.product(*phi_ranges)),
-                              total=n_frames):
+    for i_frame, phis in tqdm(
+        enumerate(itertools.product(*phi_ranges)), total=n_frames
+    ):
         for dih, phi in zip(dihedrals, phis):
             # set all dihedrals; tolist() ensures we get a standard Python int
             # because np.int64 won't work with rdkit
@@ -92,6 +93,3 @@ def generate_conformers(mol, dihedrals, num=12):
     u.load_new(trajectory)
 
     return u
-
-
-
