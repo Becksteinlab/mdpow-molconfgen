@@ -118,3 +118,6 @@ poetry.lock
 # temporary files and directories
 SANDBOX/
 tmp/
+
+# versioningit generated files
+molconfgen/_version.py

@@ -160,11 +160,11 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install setuptools cython numpy twine
+        pip install build setuptools twine
 
     - name: Build package
       run: |
-        python setup.py sdist
+        python -m build
 
     - name: Check package build
       run: |

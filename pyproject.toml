@@ -2,13 +2,15 @@
 requires = [
   "setuptools >= 40.9.0",
   "wheel",
+  "versioningit",
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "mdpow-molconfgen"
 description = "Generation of conformers of small molecules."
-license = {file = "LICENSE" }
+license = "GPL-2.0-or-later"
+license-files = ["LICENSE"]
 authors = [
     {name = "Oliver Beckstein", email = "orbeckst@gmail.com"},
 ]
@@ -22,6 +24,7 @@ dependencies = [
     "rdkit",
     "numpy",
     "tqdm",
+    "gromacswrapper",
 ]
 keywords = [
     "molecular simulations",
@@ -45,6 +48,18 @@ doc = [
 # source = "https://github.com/becksteinlab/mdpow-molconfgen"
 # documentation = "https://mdpow-molconfgen.readthedocs.io"
 
+[tool.setuptools]
+packages = ["molconfgen", "molconfgen.tests"]
+
+[tool.versioningit]
+vcs = "git"
+
+[tool.versioningit.tag2version]
+regex = "^(?P<version>[0-9]+\\.[0-9]+\\.[0-9]+)$"
+
+[tool.versioningit.write]
+file = "molconfgen/_version.py"
+
 [tool.pytest.ini_options]
 minversion = "6.0"
 testpaths = [
@@ -53,4 +68,30 @@ testpaths = [
 
 [tool.black]
 line-length = 80
-extend-exclude = "versioneer.py"
+
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 80
+
+[tool.yapf]
+column_limit = 80
+indent_width = 4
+use_tabs = false
+
+[tool.flake8]
+max_line_length = 80
+
+[tool.coverage.run]
+omit = ["*/tests/*"]
+
+[tool.coverage.report]
+exclude_also = ["if TYPE_CHECKING:"]
+
+[tool.sphinx]
+all_files = 1
+source_dir = "docs/"
+build_dir = "docs/_build"
+warning_is_error = 1
