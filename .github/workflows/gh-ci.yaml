@@ -43,9 +43,15 @@ jobs:
     strategy:
         fail-fast: false
         matrix:
-          os: [macOS-latest, ubuntu-latest, windows-latest]
+          # Windows does not have GROMACS packages in conda-forge
+          # so we skip it for now; macos-latest has issues with GROMACS at the moment
+          # /Users/runner/miniconda3/envs/mdpow-molconfgen-test/etc/conda/activate.d/gromacs_activate.sh: line 25: /Users/runner/miniconda3/envs/mdpow-molconfgen-test/bin./GMXRC: No such file or directory
+          # os: [macOS-latest, ubuntu-latest, windows-latest]
+          os: [ubuntu-latest]
           python-version: ${{ fromJSON(needs.environment-config.outputs.python-matrix) }}
-          mdanalysis-version: ["latest", "develop"]
+          # TODO: add back develop when it is fixed
+          # mdanalysis-version: ["latest", "develop"]
+          mdanalysis-version: ["latest"]
 
     steps:
     - uses: actions/checkout@v3
@@ -69,6 +75,7 @@ jobs:
         miniforge-version: latest
         use-mamba: true
         channels: conda-forge
+        conda-remove-defaults: true
 
         activate-environment: mdpow-molconfgen-test
         auto-update-conda: true
