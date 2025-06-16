@@ -48,7 +48,13 @@ The rules for this file:
 
 ### Added
 - adds new output module with `output.write_pbc_trajectory()` to write trajectory with fixed box size.(Issue #2)
-- adds new workflows module that includes function to generate conformations and calculate the potential energies with GROMACS  
+- adds new workflows module that includes function to generate conformations and calculate the potential energies with GROMACS
+- add testing
+
+### Changed
+- add gromacswrapper as a new dependency; you also need to install GROMACS to be able to evaluate potential energies
+- removed legacy setup.py and setup.cfg build system
+- use versioningit instead of versioneer; default version in absence of version info is now 0.0.0
 
 ## 0.1.1
 
