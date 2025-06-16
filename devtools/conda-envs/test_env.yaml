@@ -9,6 +9,13 @@ dependencies:
   # MDAnalysis
   - MDAnalysis
 
+
+  - gromacswrapper
+
+  # for energy evaluation in the tests (will not work on Windows)
+  # (install your own version of GROMACS for production use)
+  - gromacs
+
   # other package dependencies
   - rdkit
   - numpy
@@ -20,7 +27,5 @@ dependencies:
   - pytest-xdist
   - codecov
 
-  # Pip-only installs
-  #- pip:
-  #  - codecov
+ 
 
