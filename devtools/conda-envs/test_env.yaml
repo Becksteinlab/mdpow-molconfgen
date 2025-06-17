@@ -14,7 +14,7 @@ dependencies:
 
   # for energy evaluation in the tests (will not work on Windows)
   # (install your own version of GROMACS for production use)
-  - gromacs
+  - gromacs  # [not win]
 
   # other package dependencies
   - rdkit

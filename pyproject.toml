@@ -50,6 +50,7 @@ doc = [
 
 [tool.setuptools]
 packages = ["molconfgen", "molconfgen.tests"]
+include-package-data = true
 
 [tool.versioningit]
 vcs = "git"
