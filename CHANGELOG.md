@@ -16,6 +16,28 @@ The rules for this file:
   * accompany each entry with github issue/PR number (Issue #xyz)
 -->
 
+## 0.3.0
+
+????-??-??
+
+### Authors
+- xxx
+
+### Added
+- 
+
+### Fixed
+<!-- Bug Fixes -->
+
+### Changed
+<!-- Changes In Existing Functionality -->
+
+### Deprecated
+<!-- Soon-To-Be Removed Features -->
+
+### Removed
+<!-- Removed Features -->
+
 
 ## 0.2.0
 
