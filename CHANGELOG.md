@@ -21,13 +21,15 @@ The rules for this file:
 ????-??-??
 
 ### Authors
-- xxx
+- orbeckst
 
 ### Added
-- 
+- add frames kwarg to output.write_pbc_trajectory() to select written frames;
+  default is "all".
+- allow to pass through **kwargs in analyze.conformers_energies() to Dihedral analysis
 
 ### Fixed
-<!-- Bug Fixes -->
+- fixed workflows.create_boxed_pdb() writing a whole trajectory to PDB
 
 ### Changed
 <!-- Changes In Existing Functionality -->

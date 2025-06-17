@@ -34,6 +34,7 @@ def write_pbc_trajectory(
     box: Optional[Union[float, List[float], str]] = None,
     rcoulomb: Optional[float] = None,
     buffer: float = 10.0,
+    frames: Optional[Union[int, List[int], str]] = None,
 ) -> MDAnalysis.core.groups.AtomGroup:
     """Define the box for a trajectory and write to a file.
 
@@ -66,6 +67,12 @@ def write_pbc_trajectory(
         (in Angstrom)
     buffer : float, optional
         The buffer to be added to the box size with `box="auto"` (in Angstrom).
+    frames : int or list of ints or str, optional
+        The frames to write to the output file. If None, all frames are written
+        (same as `frames="all"`).
+        If an integer, this frame is written, with the first frame being 0 and the
+        last frame -1. If a list of integers, only the specified frames are written.
+
 
     Returns
     -------
@@ -81,6 +88,10 @@ def write_pbc_trajectory(
     u = ag.universe.copy()
     r = largest_r(ag)
     ag_new = u.atoms[ag.atoms.ix]
+
+    frames = "all" if frames is None else frames
+    if isinstance(frames, int):
+        frames = [frames]
 
     if box is None:
         ag_new.atoms.write(filename, frames="all")
@@ -109,5 +120,5 @@ def write_pbc_trajectory(
 
     transform = MDAnalysis.transformations.boxdimensions.set_dimensions(dim)
     u.trajectory.add_transformations(transform)
-    ag_new.atoms.write(filename, frames="all")
+    ag_new.atoms.write(filename, frames=frames)
     return ag_new

@@ -185,7 +185,7 @@ def create_boxed_pdb(universe, output_prefix, box, rcoulomb):
     """
     pdb_with_box = f"{output_prefix}_boxed.pdb"
     output.write_pbc_trajectory(
-        universe, pdb_with_box, box=box, rcoulomb=rcoulomb
+        universe, pdb_with_box, box=box, rcoulomb=rcoulomb, frames=0
     )
     return pdb_with_box
 

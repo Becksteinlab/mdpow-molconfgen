@@ -76,7 +76,10 @@ def get_dihedral_angles(
 
 
 def analyze_conformers(
-    topology_file: str, trajectory_file: str, energy_file: str
+    topology_file: str,
+    trajectory_file: str,
+    energy_file: str,
+    **kwargs,
 ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
     """Analyze conformers from a trajectory file.
 
@@ -90,6 +93,8 @@ def analyze_conformers(
         Path to the trajectory file (.trr)
     energy_file : str
         Path to the energy file (.edr)
+    **kwargs : dict
+        Additional keyword arguments to pass to the Dihedral.run() method
 
     Returns
     -------
@@ -100,7 +105,7 @@ def analyze_conformers(
             Array of energies for each frame
     """
     u = mda.Universe(topology_file, trajectory_file)
-    angles, _ = get_dihedral_angles(u)
+    angles, _ = get_dihedral_angles(u, **kwargs)
     energies = get_energies(energy_file)
 
     return angles, energies
