@@ -6,7 +6,7 @@
 ;       to change it as needed. See the source mdpow/equil.py for details.
 
 ; Include forcefield parameters
-#include "/nfs/homes3/rdricha/miniforge3/envs/mdpow/lib/python3.12/site-packages/mdpow/top/oplsaa.ff/forcefield.itp"
+#include "oplsaa.ff/forcefield.itp"
 
 ; Include compound topology
 
