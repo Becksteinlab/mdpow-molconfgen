@@ -21,6 +21,8 @@ def universe():
 def test_conformers_to_energies(universe, num_conformers=10):
     """Test the conformers_to_energies workflow."""
     with tempfile.TemporaryDirectory() as tmpdir:
+        os.chdir(tmpdir)
+
         # Run the workflow with auto box size
         result = workflows.conformers_to_energies(
             itp_file=V46_ITP,
@@ -46,6 +48,7 @@ def test_conformers_to_energies(universe, num_conformers=10):
 def test_run_gromacs_energy_calculation(universe, num_conformers=10, box=200):
     """Test running GROMACS energy calculation."""
     with tempfile.TemporaryDirectory() as tmpdir:
+        os.chdir(tmpdir)
         # Create a test trajectory
         traj_file = os.path.join(tmpdir, "test.trr")
         mol, conformers, _ = workflows.run_sampler(

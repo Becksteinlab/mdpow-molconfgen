@@ -10,9 +10,10 @@ NUM_CONFORMERS = 6  # number of conformers to generate for testing
 
 
 @pytest.fixture(scope="module")
-def setup_workflow():
+def setup_workflow(tmpdir_factory):
     """Run the workflow to generate necessary input files for testing analyze functions."""
-    output_prefix = "tst_V46"
+    tmpdir = tmpdir_factory.mktemp("test_analyze")
+    output_prefix = str(tmpdir / "tst_V46")
     result = workflows.conformers_to_energies(
         itp_file=V46_ITP,
         pdb_file=V46_PDB,
@@ -21,7 +22,6 @@ def setup_workflow():
         output_prefix=output_prefix,
     )
     return result
-
 
 def test_analyze_energies(setup_workflow):
     """Test the analyze_energies function."""
