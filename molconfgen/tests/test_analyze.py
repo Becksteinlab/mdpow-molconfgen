@@ -23,6 +23,7 @@ def setup_workflow(tmpdir_factory):
     )
     return result
 
+
 def test_analyze_energies(setup_workflow):
     """Test the analyze_energies function."""
     edr_file = setup_workflow["energies"]
