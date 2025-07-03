@@ -81,8 +81,11 @@ import pathlib
 from typing import Tuple, Optional, List, Union
 from string import Template
 import rdkit.Chem
+import logging
 
 from . import sampler, chem, output
+
+logger = logging.getLogger("molconfgen")
 
 # MDP file template
 MDP_TEMPLATE = Template(
@@ -143,6 +146,7 @@ def create_mdp_file(
     str
         path to the created mdp file
     """
+    logger.info(f"Creating MDP file at {output_file} (rcoulomb={rcoulomb}, epsilon_r={epsilon_r})")
     if include_paths is None:
         include_paths = ["."]
 
@@ -183,6 +187,7 @@ def create_boxed_pdb(universe, output_prefix, box, rcoulomb):
     str
         Path to the created PDB file
     """
+    logger.info(f"Writing boxed PDB file with prefix '{output_prefix}' and box={box}")
     pdb_with_box = f"{output_prefix}_boxed.pdb"
     output.write_pbc_trajectory(
         universe, pdb_with_box, box=box, rcoulomb=rcoulomb, frames=0
@@ -226,6 +231,7 @@ def run_sampler(
     Tuple[rdkit.Chem.rdchem.Mol, mda.Universe, str]
         The molecule object, conformer universe, and output filename
     """
+    logger.info(f"Generating {num_conformers} conformers and writing to {output_filename}")
     mol = chem.load_mol(universe, add_labels=True)
     dihedrals = chem.find_dihedrals(mol, universe)
 
@@ -273,6 +279,7 @@ def run_gromacs_energy_calculation(
     """
     import gromacs
 
+    logger.info(f"Running GROMACS energy calculation with prefix '{output_prefix}'")
     # Generate the tpr file
     gromacs.grompp(
         f=mdp_file,
@@ -344,6 +351,7 @@ def conformers_to_energies(
         - conformers: Path to the conformer trajectory file
         - energies: Path to the energy file
     """
+    logger.info(f"Generating conformers and calculating energies (output_prefix='{output_prefix}', num_conformers={num_conformers})")
     universe = mda.Universe(itp_file, pdb_file)
 
     # Generate conformers
