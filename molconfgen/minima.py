@@ -1,16 +1,17 @@
-import numpy as np
-from scipy import ndimage
 from typing import List, Tuple, Sequence, Union
-from itertools import product
-from scipy.interpolate import griddata
+
+import numpy as np
+import scipy.interpolate
+import scipy.ndimage
 
 __all__ = [
     "wrap_angles",
+    "wrap_tensor",    
     "regular_grid",
-    "griddata_interpolate",
+    "nearest_neighbor_interpolate",
     "find_local_minima",
-    "merge_near_degenerate",
 ]
+
 
 AngleArray = Union[np.ndarray, Sequence[float]]
 
@@ -40,151 +41,73 @@ def wrap_angles(phi: AngleArray, lower: float = -180.0, upper: float = 180.0) ->
     phi_range = upper - lower
     return (phi - lower) % phi_range + lower
 
-
-# -----------------------------------------------------------------------------
-#  Interpolation using scipy.interpolate.griddata (preferred)
-# -----------------------------------------------------------------------------
-
-import scipy.spatial
-
-def augment_periodic_samples(points: np.ndarray, values: np.ndarray, 
-                             cutoff : float = 30.0,
-                             lower : float = -180.0,
-                             upper : float = 180.0,
-                             ) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Augment periodic samples with images within `cutoff` to handle periodicity.
-
-    Points are assumed to be periodic in the interval [lower, upper) in all dimensions. 
-    We find the nearest neighbors within `cutoff` of the convex hull of the points. 
-    We then create new points by shifting the surface points by ±360° in the direction of the shift vector. 
-    We then return the original points concatenated with the new points and the corresponding values.
-
-    Parameters
-    ----------
-    points : array-like
-        (N, M) samples in *degrees*. Will be wrapped.
-    values : array-like
-        Values V_i, shape (N,) (e.g., energies)
-    cutoff : float
-        Threshold for determining significant shifts (should be the same as the cutoff used to find the neighbors)
-    lower : float
-        Lower bound of the interval (e.g., -180°)
-    upper : float
-        Upper bound of the interval (e.g., 180°)
-
-    Returns
-    -------
-    tuple
-        (all_points, all_values) where:
-        - all_points: numpy.ndarray of all points
-        - all_values: numpy.ndarray of all values
-    """
-    if not np.allclose(upper - lower, 360.0):
-        raise ValueError(f"upper - lower must be 360, but is {upper - lower}")
+def wrap_tensor(E: np.ndarray, grid_vectors: List[np.ndarray], lower: float = -180.0, upper: float = 180.0) -> Tuple[np.ndarray, List[np.ndarray]]:
+    """Wrap tensor E and grid vectors from [0, 360) to [lower, upper).
     
-    # We need to rewrap from [-180, 180) to [0, 360) because the PBC-aware KDTree only works with positive values
-    points360 = wrap_angles(points, lower=0, upper=360)
-
-    ptree = scipy.spatial.KDTree(points360, boxsize=points.shape[1] * [360])
-
-    hull = scipy.spatial.ConvexHull(points360)
-    surface = points360[hull.vertices]
-
-    # neighbors WITH PBC taken into account
-    neighbors = ptree.query_ball_point(surface, r=cutoff)
-
-    # distances WITHOUT PBC
-    shifts = [points360[neighbors[i]] - surface[i] for i in range(len(neighbors))]
-    d = [np.linalg.norm(group, axis=1) for group in shifts]
-
-    points_outside = [group_distances > cutoff for group_distances in d]
-    vertices_outside = [np.asarray(group)[outside] for group, outside in zip(neighbors, points_outside)]
-    shifts_outside = [shift_vectors[outside] for shift_vectors, outside in zip(shifts, points_outside)]
-
-    # go from ragged *_outside lists of arrays to flat arrays of all points outside the convex hull
-    points_outside_flat = np.concatenate([v for v in vertices_outside if len(v) > 0])
-    shifts_outside_flat = np.concatenate([s for s in shifts_outside if len(s) > 0])
-
-    augmented_points, indices = _create_augmented_points(points360, points_outside_flat, shifts_outside_flat, cutoff)
-
-    # rewrap from [0, 360) to [lower, upper)
-    augmented_points = wrap_angles(augmented_points, lower=lower, upper=upper)
-
-    all_points = np.concatenate([points, augmented_points])
-    all_values = np.concatenate([values, values[indices]])
-
-    return all_points, all_values
-
-def _create_augmented_points(points, points_outside, shifts_outside, cutoff):
-    """
-    Fully vectorized approach to create augmented points.
+    This function transforms a tensor E with periodic data originally defined
+    on grid vectors spanning [0, 360) to the equivalent representation on 
+    [lower, upper), reordering the data to maintain correspondence between
+    tensor elements and angle values.
     
     Parameters
     ----------
-    points : array-like
-        Array of points
-    points_outside : array-like
-        Indices of points that are outside the boundary.
-        These are the indices into points.
-    shifts_outside : array-like
-        Shift vectors for points outside the boundary
-        These are the shift vectors for the points outside the boundary.
-    cutoff : float
-        Threshold for determining significant shifts (should be the same as the cutoff used to find the neighbors)
+    E : np.ndarray
+        M-dimensional tensor with periodic data, shape (N, N, ..., N)
+    grid_vectors : List[np.ndarray]
+        List of M arrays, each of length N, containing angle values in degrees
+        for each axis, typically spanning [0, 360)
+    lower : float, optional
+        Lower bound for wrapped angles
+    upper : float, optional
+        Upper bound for wrapped angles
         
     Returns
     -------
-   tuple
-        (augmented_points, vertex_indices) where:
-        - augmented_points: numpy.ndarray of augmented points
-        - vertex_indices: numpy.ndarray of actual vertex indices from the original data (points)
-    """ 
-    surface_points = points[points_outside]
+    E_wrapped : np.ndarray
+        Reordered tensor with same shape as E
+    grid_vectors_wrapped : List[np.ndarray]
+        List of M wrapped and sorted grid vectors
+    """
+    # Wrap each grid vector and find the reordering
+    new_grid_vectors = []
+    reorder_indices = []
     
-    # shifts >= cutoff indicate that we need to make one or more periodic images
-    # and generate augmentation points
-    shift_mask = np.abs(shifts_outside) > cutoff
+    for gv in grid_vectors:
+        wrapped = wrap_angles(gv, lower=lower, upper=upper)
+        # Find the indices that would sort the wrapped angles
+        sort_idx = np.argsort(wrapped)
+        new_grid_vectors.append(wrapped[sort_idx])
+        reorder_indices.append(sort_idx)
     
-    # Get indices of points and dimensions that need shifting
-    point_indices, dim_indices = np.where(shift_mask)
+    # Reorder the tensor along each axis
+    E_new = E.copy()
+    for axis, idx in enumerate(reorder_indices):
+        E_new = np.take(E_new, idx, axis=axis)
     
-    # Create a new point for each (point_idx, dim_idx) pair
-    base_points = surface_points[point_indices]
-    
-    # Get the shift directions
-    shift_directions = np.sign(shifts_outside[point_indices, dim_indices])
-    
-    # Create output array and apply shifts
-    augmented_points = base_points.copy()
-    augmented_points[np.arange(len(dim_indices)), dim_indices] += 360.0 * shift_directions
-    
-    # Create array of original point indices with duplicates
-    # These are the indices into points_outside, not the original vertices
-    augmented_indices = point_indices
-    
-    # Get the actual vertex indices by mapping through points_outside_flat
-    vertex_indices = points_outside[point_indices]
-    
-    # Assert that the length of augmented_indices equals the number of augmented points
-    assert len(augmented_indices) == len(augmented_points), \
-        f"Length mismatch: {len(augmented_indices)} indices vs {len(augmented_points)} points"
-    
-    return augmented_points, vertex_indices
+    return E_new, new_grid_vectors
 
 
+# -----------------------------------------------------------------------------
+#  Interpolation using periodic nearest neighbor interpolation
+# -----------------------------------------------------------------------------
 
 
-
-
-def griddata_interpolate(
+def nearest_neighbor_interpolate(
     points: np.ndarray,
     energies: np.ndarray,
-    grid_shape: Sequence[int],
-    method: str = "linear",
-    fill_value: float = np.nan,
+    num_conformers: int,
 ) -> Tuple[List[np.ndarray], np.ndarray]:
     """Interpolate scattered periodic dihedral samples onto a regular grid.
+
+    The interpolation is done using a fast periodic nearest neighbor interpolator
+    to take periodicity of dihedral angles over 360º into account.
+
+    The energies are shifted so that the minimum energy is 0.
+
+    The purpose of this function is to regularize the dihedral angles and energies.
+    In principle, molconfgen workflow already samples on a regular grid, but there is
+    the possibility of small numerical differences and this procedure ensure that we
+    can work with data on guaranteed regular grid.
 
     Parameters
     ----------
@@ -192,34 +115,35 @@ def griddata_interpolate(
         (N, M) dihedral samples in **degrees**. Will be wrapped.
     energies
         Energies E_i, shape (N,).
-    grid_shape
-        Desired grid resolution as tuple/list of ints.
-    method
-        Interpolation method passed to :pyfunc:`scipy.interpolate.griddata`.
-        One of "linear", "nearest" or "cubic".
-    fill_value
-        Value assigned outside the convex hull (should not occur with adequate
-        periodic augmentation).
+    num_conformers
+        Number of conformers that were used in the sampling. The M-dimensional 
+        resulting grid will have shape `(num_conformers, num_conformers, ...)`.
+        The nearest neighbor interpolation will simply associate the calculated 
+        energy with the nearest dihedral angle. Therefore, it makes no sense to
+        choose a larger number of conformers here than the original one.
+
+    Returns
+    -------
+    grid_vectors
+        List of M arrays (one for each dihedral), each of length `num_conformers`, indicating
+        the grid points for each dihedral.
+    E
+        Interpolated (and shifted)energies, shape `(num_conformers, num_conformers, ...)`
     """
-    points = wrap_angles(points)
+    # We need to rewrap from [-180, 180) to [0, 360) because the PBC-aware KDTree only works with positive values
+    points = wrap_angles(points, lower=0, upper=360)    
     energies = np.asarray(energies, float)
+    energies = energies - energies.min()
 
-    # Augment points with ±360° images to handle periodicity
-    aug_points, aug_energy = _augment_periodic_samples(points, energies)
-
-    # Build target regular grid (same as regular_grid)
-    grid_vectors, E = regular_grid(grid_shape, dtype=float)
+    # Build target regular grid and all points to interpolate on (xi)
+    grid_shape = points.shape[1] * [num_conformers]
+    grid_vectors, E = regular_grid(grid_shape, dtype=float, lower=0, upper=360)
     mesh = np.meshgrid(*grid_vectors, indexing="ij")
     xi = np.stack([m.ravel() for m in mesh], axis=-1)
 
-    # Interpolate
-    interp_vals = griddata(
-        aug_points,
-        aug_energy,
-        xi,
-        method=method,
-        fill_value=fill_value,
-    )
+    # Periodic NN interpolation
+    ndi = scipy.interpolate.NearestNDInterpolator(points, energies, tree_options={"boxsize": 360.})
+    interp_vals = ndi(xi, workers=-1)
 
     E[:, :] = interp_vals.reshape(grid_shape)
 
@@ -251,6 +175,8 @@ def find_local_minima(E: np.ndarray) -> np.ndarray:
     local_min &= mask_finite
 
     return np.argwhere(local_min)
+
+
 
 
 def _wrapped_distance(idx_a: np.ndarray, idx_b: np.ndarray, shape: Sequence[int]):
