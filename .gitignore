@@ -103,6 +103,8 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# macOS finder
 .DS_Store
 
 # poetry
@@ -110,6 +112,7 @@ poetry.lock
 
 # generated data files when running notebooks
 *.trr
+\#*
 
 # emacs backup files
 *~
@@ -119,5 +122,6 @@ poetry.lock
 SANDBOX/
 tmp/
 
-# versioningit generated files
-molconfgen/_version.py
+
+# cursor config
+settings.json

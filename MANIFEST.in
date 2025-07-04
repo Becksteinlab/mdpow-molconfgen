@@ -3,5 +3,5 @@ include MANIFEST.in
 include AUTHORS.md CHANGELOG.md CODE_OF_CONDUCT.md README.md
 
 graft molconfgen
-recursive-include molconfgen/data *
-global-exclude *.py[cod] __pycache__ *.so *~
+recursive-include molconfgen/data/*
+global-exclude *.py[cod] __pycache__ *.so *~ .DS_Store .ipynb_checkpoints/*
