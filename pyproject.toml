@@ -49,18 +49,20 @@ doc = [
 # documentation = "https://mdpow-molconfgen.readthedocs.io"
 
 [tool.setuptools]
-packages = ["molconfgen", "molconfgen.tests"]
+packages = ["molconfgen", "molconfgen.tests", "molconfgen.data"]
 include-package-data = true
 
 [tool.versioningit]
-vcs = "git"
-default-version = "0.0.0"
+default-version = "1+unknown"
 
-[tool.versioningit.tag2version]
-regex = "^(?P<version>[0-9]+\\.[0-9]+\\.[0-9]+)$"
+[tool.versioningit.vcs]
+method = "git"
+match = ["*"]
 
-[tool.versioningit.write]
-file = "molconfgen/_version.py"
+[tool.versioningit.format]
+distance = "{base_version}+{distance}.{vcs}{rev}"
+dirty = "{base_version}+{distance}.{vcs}{rev}.dirty"
+distance-dirty = "{base_version}+{distance}.{vcs}{rev}.dirty"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
