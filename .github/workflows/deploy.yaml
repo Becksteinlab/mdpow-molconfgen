@@ -12,8 +12,6 @@ jobs:
   build:
     name: Build package
     runs-on: ubuntu-latest
-    outputs:
-      dist-files: ${{ steps.build.outputs.dist-files }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,10 +27,8 @@ jobs:
           pip install build twine
 
       - name: Build package
-        id: build
         run: |
           python -m build
-          echo "dist-files=$(ls dist/)" >> $GITHUB_OUTPUT
 
       - name: Check package
         run: |
