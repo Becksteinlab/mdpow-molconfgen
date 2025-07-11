@@ -21,6 +21,7 @@ readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "MDAnalysis>=2.0.0",
+    "pyedr",
     "rdkit",
     "numpy",
     "tqdm",
@@ -44,9 +45,9 @@ doc = [
     "sphinx_rtd_theme",
 ]
 
-# [project.urls]
-# source = "https://github.com/becksteinlab/mdpow-molconfgen"
-# documentation = "https://mdpow-molconfgen.readthedocs.io"
+[project.urls]
+source = "https://github.com/becksteinlab/mdpow-molconfgen"
+documentation = "https://mdpow-molconfgen.readthedocs.io"
 
 [tool.setuptools]
 packages = ["molconfgen", "molconfgen.tests", "molconfgen.data"]
