@@ -82,6 +82,11 @@ jobs:
           name: dist-files
           path: dist/
 
+      - name: Install system dependencies (GROMACS)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gromacs
+
       - name: Install package with test dependencies
         run: |
           python -m pip install --upgrade pip
