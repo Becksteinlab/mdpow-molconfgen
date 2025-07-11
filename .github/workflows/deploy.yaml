@@ -90,7 +90,7 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest --verbose
+          pytest -n auto --verbose --pyargs molconfgen
 
   deploy-testpypi:
     name: Deploy to TestPyPI
