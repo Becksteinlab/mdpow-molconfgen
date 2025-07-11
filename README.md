@@ -26,7 +26,7 @@ Generation of conformers of small molecules.
 
 
 ### Initial testing systems ###
-From the [COW dataset](https://github.com/Becksteinlab/sampl5-distribution-water-cyclohexane/tree/master/11_validation_dataset92): 
+From the [COW dataset](https://github.com/Becksteinlab/cow-dataset): 
 
 - V36-methylacetate : 1 dihedral
 - V46-2-methyl-1-nitrobenzene : steric hindrance
@@ -47,7 +47,17 @@ If possible, we strongly recommend that you use
 Below we provide instructions both for `mamba` and
 for `pip`.
 
-#### With mamba
+Note that for some functionality you also need a working [GROMACS](https://www.gromacs.org) installation.
+
+#### With pip from PyPi
+
+You can directly install the [mdpow-molconfgen package](https://pypi.org/project/mdpow-molconfgen/) PyPi package with
+```
+pip install mdpow-molconfgen
+```
+This will install all dependencies (except GROMACS).
+
+#### With mamba from source
 
 Ensure that you have [mamba](https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html) installed.
 
@@ -83,7 +93,7 @@ And when you are finished, you can exit the virtual environment with:
 mamba deactivate
 ```
 
-#### With pip
+#### With pip from source
 
 To build the package from source, run:
 
